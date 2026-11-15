@@ -56,6 +56,10 @@ marcare le Fasi 1–2 come ✅ → Fase 3.
 - [x] `CreateOrderAsync` trovato con percorso e riga esatti; filtri combinabili (test di ricerca).
 - [x] Export TXT con delimitatori `FILE:`, codice integrale, segreti oscurati, suddivisione con file indice (test di export).
 - [x] `scripts\build.ps1` completa la prova end-to-end della CLI.
+- [ ] Dati sensibili oscurati anche durante la consultazione (Esplora, anteprime di Cerca, appunti, CLI) e
+      connection string oscurate per intero: test scritti (`SecretScannerTests`, `SearchIntegrationTests`,
+      `ExportIntegrationTests`, `SettingsTests`), da eseguire con `Compila-e-testa.bat`; prova manuale di
+      **Copia per AI (oscurato)** e **Mostra valori** nella GUI.
 
 ### Fase 3 — Roslyn semantico
 - Caricamento con `MSBuildWorkspace` (Build Locator); progetti non caricabili segnalati e analizzati in modo sintattico.

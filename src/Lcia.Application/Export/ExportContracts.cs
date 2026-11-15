@@ -59,6 +59,9 @@ public sealed record ExportRequest
     /// <summary>Conferma esplicita richiesta per disattivare l'oscuramento.</summary>
     public bool UnredactedExportConfirmed { get; init; }
 
+    /// <summary>Cosa oscurare oltre ai segreti: connection string complete (predefinito) ed eventuali dati personali.</summary>
+    public RedactionOptions Redaction { get; init; } = RedactionOptions.Default;
+
     /// <summary>Includi file tipicamente sensibili (secrets.json, .env, ...). Richiede conferma esplicita.</summary>
     public bool IncludeSensitiveFiles { get; init; }
 

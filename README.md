@@ -39,6 +39,7 @@ chiede conferma esplicita.
 | Soluzioni e progetti | `.sln`, `.slnx`, `.csproj`/`.vbproj`/`.fsproj`/`.sqlproj`, NuGet (anche Central Package Management e `packages.config`) | Implementato |
 | Ricerca | Parole chiave (FTS5), testo esatto, regex, simboli, riferimenti; filtri combinabili; percorso e riga | Implementato |
 | Full Project Context Export | TXT e Markdown, codice integrale, delimitatori per file, simboli e dipendenze, suddivisione in parti con file indice, stima token, **oscuramento segreti** | Implementato |
+| Protezione dei dati sensibili | Connection string, password, token e chiavi oscurati anche mentre consulti, cerchi e copi per un'AI online; email e IP opzionali | Implementato |
 | Interfaccia | WPF (MVVM): Dashboard, Esplora (codice con numeri di riga), Cerca, Esporta, Log, Impostazioni; **tema chiaro/scuro** (anche "come Windows"); scorciatoie da tastiera | Implementato |
 | Guida in linea | Pagina **Guida** (F1) con il manuale completo, indice degli argomenti, ricerca e scorciatoie | Implementato |
 | CLI | `lcia index / search / export / stats / repos / remove` | Implementato |
@@ -105,9 +106,12 @@ Guida completa: [docs/USER_GUIDE.md](docs/USER_GUIDE.md), disponibile anche dent
 
 - Dati locali in `%LOCALAPPDATA%\LocalCodeIntelligenceAnalyzer` (indice, log, impostazioni).
   L'indice di un repository si elimina dalla Dashboard senza toccare i sorgenti.
-- Le esportazioni oscurano per impostazione predefinita password, token, chiavi private, certificati e
-  connection string (`[REDACTED:categoria]`); i file come `secrets.json` e `.env` sono esclusi. Disattivare
-  queste protezioni richiede una conferma esplicita.
+- **Dati sensibili oscurati prima di uscire dall'app**: password, token, chiavi API, chiavi private, certificati
+  e connection string (per intero: server, database, utente) diventano `[REDACTED:categoria]` nei dossier
+  esportati, nel visualizzatore di Esplora, nelle anteprime di Cerca, nel testo copiato (**Copia per AI**) e
+  nella riga di comando. Email e indirizzi IP su richiesta. I file come `secrets.json` e `.env` sono esclusi.
+  Vedere i valori reali o disattivare le protezioni richiede una scelta esplicita; i file originali non
+  vengono mai modificati.
 - I log passano dallo stesso filtro e non contengono il contenuto dei file analizzati.
 - Il percorso assoluto della radice (che può contenere il nome utente) è omesso dai dossier, salvo scelta esplicita.
 

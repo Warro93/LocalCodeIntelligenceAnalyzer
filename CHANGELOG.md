@@ -3,6 +3,30 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/); versioni secondo
 [Semantic Versioning](https://semver.org/lang/it/).
 
+## [Non rilasciato]
+
+### Aggiunto
+- **Protezione dei dati sensibili durante la consultazione**, non solo nell'export: il visualizzatore di
+  Esplora, le anteprime e i dettagli di Cerca, il testo copiato negli appunti e `lcia search` mostrano password,
+  token, chiavi e connection string già oscurati (`[REDACTED:<tipo>]`). La ricerca resta sul testo originale.
+- Esplora: riquadro con il numero di righe oscurate, **Copia per AI (oscurato)** (percorso, linguaggio e
+  contenuto pronti da incollare in un'AI online) e **Mostra valori** / **Nascondi valori** con conferma.
+- **Connection string oscurate per intero** (server, database, utente e password) in JSON, XML/`.config`, YAML,
+  testo e log, SQL e stringhe del codice; opzione per oscurare solo la password.
+- Opzione per oscurare anche **email e indirizzi IP** (esclusi loopback, maschere di rete e numeri di versione).
+- Nuove regole: token npm e NuGet, chiavi SendGrid, autenticazione `Basic`, `PASSWORD = '...'` in T-SQL
+  (`CREATE LOGIN`, `ALTER LOGIN`), attributi XML con nomi da segreto (`<add password="..." />`).
+- Impostazioni > **Protezione dei dati sensibili** (tre opzioni, attive le prime due); Esporta parte da queste
+  scelte. CLI: `search --show-secrets`, `export --mask-personal-data` e `--password-only`.
+- Intestazione del dossier: campo `REDACTION SCOPE` con ciò che è stato oscurato.
+- `git-flow.ps1`: all'avvio di release e hotfix le note `## [Non rilasciato]` di CHANGELOG.md diventano la
+  sezione della nuova versione (stesso commit della versione); alla chiusura lo propone se manca. Test Pester.
+- Guida: nuova sezione **Protezione dei dati sensibili** e domande frequenti sull'uso con AI online.
+
+### Modificato
+- `ISecretScanner.Redact` accetta `RedactionOptions`; i segnaposto e i valori già oscurati non vengono
+  oscurati di nuovo.
+
 ## [0.2.3] - 2026-11-15 — Branch con Git Flow
 
 ### Aggiunto

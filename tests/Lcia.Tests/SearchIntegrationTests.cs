@@ -94,4 +94,23 @@ public sealed class SearchIntegrationTests : IClassFixture<DemoShopFixture>
         var onlyDi = await SearchAsync("IOrderRepository", SearchMode.References, q => q with { RelationKinds = [RelationKind.DiRegistration] });
         Assert.All(onlyDi.Hits, h => Assert.Equal("Program.cs", h.RelativePath));
     }
+
+    [Fact]
+    public async Task PreviewsHideSensitiveValuesByDefault()
+    {
+        var result = await SearchAsync("TrustServerCertificate", SearchMode.ExactText);
+        var hit = Assert.Single(result.Hits, h => h.RelativePath == "appsettings.json");
+        Assert.Equal(3, hit.Line);
+        Assert.DoesNotContain("Demo-Only", hit.Preview);
+        Assert.DoesNotContain("demo_app", hit.Preview);
+        Assert.Contains("[REDACTED:connection-string]", hit.Preview);
+    }
+
+    [Fact]
+    public async Task PreviewsCanShowValuesWhenMaskingIsDisabled()
+    {
+        var result = await SearchAsync("TrustServerCertificate", SearchMode.ExactText, q => q with { MaskSensitive = false });
+        var hit = Assert.Single(result.Hits, h => h.RelativePath == "appsettings.json");
+        Assert.Contains("demo_app", hit.Preview);
+    }
 }

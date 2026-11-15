@@ -33,6 +33,15 @@ public sealed class AppSettings
 
     public AppTheme Theme { get; set; } = AppTheme.System;
 
+    /// <summary>Oscura i valori sensibili anche durante la consultazione (Esplora, Cerca, copia, CLI).</summary>
+    public bool MaskSensitiveWhileBrowsing { get; set; } = true;
+
+    /// <summary>Oscura le connection string per intero (server, database, utente), non solo la password.</summary>
+    public bool MaskFullConnectionStrings { get; set; } = true;
+
+    /// <summary>Oscura anche indirizzi email e indirizzi IP.</summary>
+    public bool MaskPersonalData { get; set; }
+
     public string? LastExportDirectory { get; set; }
 
     public int DefaultMaxPartTokens { get; set; }
@@ -47,6 +56,12 @@ public sealed class AppSettings
         MaxDepth = Math.Clamp(MaxDepth, 1, 512),
         FollowSymbolicLinks = FollowSymbolicLinks,
         MaxDegreeOfParallelism = Math.Clamp(MaxDegreeOfParallelism, 1, 64),
+    };
+
+    public RedactionOptions ToRedactionOptions() => new()
+    {
+        FullConnectionStrings = MaskFullConnectionStrings,
+        PersonalData = MaskPersonalData,
     };
 
     public void AddRecentPath(string path, int max = 10)

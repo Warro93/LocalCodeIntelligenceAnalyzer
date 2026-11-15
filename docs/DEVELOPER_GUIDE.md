@@ -91,12 +91,14 @@ separate (WAL).
 
 ## Branch e release (Git Flow)
 
-Si lavora su `develop` o su `feature/<nome>`; `main` contiene solo versioni pubblicate. Tutto da
-`GitHub-4-branch-git-flow.bat` (dettagli in `docs/GITHUB_SETUP.md`, sezione 10):
+Si lavora su `develop` o su `feature/<nome>`; `main` contiene solo versioni pubblicate. Durante lo sviluppo
+la versione in `Directory.Build.props` non cambia e le modifiche si annotano in `CHANGELOG.md` sotto
+`## [Non rilasciato]`. Tutto da `GitHub-4-branch-git-flow.bat` (dettagli in `docs/GITHUB_SETUP.md`, sezione 10):
 
-1. **Nuova release** → `release/X.Y.Z` da `develop`, versione aggiornata in `Directory.Build.props`.
-2. Sul branch di release: sezione `## [X.Y.Z]` in `CHANGELOG.md`, `ROADMAP.md`, ultime correzioni;
-   salva con `GitHub-2-invia-modifiche.bat`.
+1. **Nuova release** → `release/X.Y.Z` da `develop`, versione aggiornata in `Directory.Build.props` e note
+   "Non rilasciato" spostate in `## [X.Y.Z] - data` (un solo commit firmato).
+2. Sul branch di release: rifinisci la sezione `## [X.Y.Z]` di `CHANGELOG.md`, aggiorna `ROADMAP.md`, ultime
+   correzioni; salva con `GitHub-2-invia-modifiche.bat`.
 3. **Chiudi il branch corrente** → merge in `main`, tag firmato `vX.Y.Z` (stesso controllo di
    `GitHub-3-crea-release.bat`), merge in `develop`, eliminazione del branch.
 4. Il workflow `release.yml` compila, testa, crea lo zip win-x64 e la release con il testo del CHANGELOG.

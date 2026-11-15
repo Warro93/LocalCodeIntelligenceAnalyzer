@@ -21,10 +21,11 @@ public static class Program
         Uso:
           lcia index  <cartella|soluzione.sln|soluzione.slnx> [--force] [--max-file-kb N] [--parallel N] [--follow-links]
           lcia search <cartella> <testo> [--mode words|exact|regex|symbol|refs] [--ext .cs,.sql] [--path testo]
-                      [--project nome] [--case] [--limit N]
+                      [--project nome] [--case] [--limit N] [--show-secrets]
           lcia export <cartella> --out <cartella-destinazione> [--format txt|md] [--ext .cs,.sql] [--folder src/A,src/B]
                       [--exclude-folder test] [--files a.cs,b.cs] [--max-tokens N] [--name nome] [--no-line-numbers]
                       [--no-source] [--no-tree] [--no-symbols] [--absolute-paths]
+                      [--mask-personal-data] [--password-only]
                       [--no-redact --i-understand-secrets-risk]
           lcia stats  <cartella>
           lcia repos
@@ -34,6 +35,12 @@ public static class Program
         Opzioni comuni:
           --data-dir <cartella>   cartella dati (indice, log, impostazioni). Predefinita: %LOCALAPPDATA%\LocalCodeIntelligenceAnalyzer
           --verbose               log dettagliati sulla console
+
+        Dati sensibili: password, token, chiavi, certificati e connection string vengono oscurati nei risultati
+        di search e nei dossier di export, secondo le impostazioni dell'app (connection string complete, email e IP).
+          --show-secrets          (search) mostra le anteprime senza oscuramento, solo sul tuo terminale
+          --mask-personal-data    (export) oscura anche email e indirizzi IP
+          --password-only         (export) delle connection string oscura solo la password
 
         Il comando export richiede che il repository sia già indicizzato (lcia index).
         I file prodotti vengono scritti solo nella cartella indicata con --out, che deve essere esterna al repository.
@@ -180,8 +187,12 @@ public static class Program
             var other => throw new ArgumentException($"Modalità non valida: {other}"),
         };
 
+        var settings = provider.GetRequiredService<ISettingsStore>().Load();
+        var showSecrets = command.Flag("show-secrets");
         var query = new SearchQuery
         {
+            MaskSensitive = settings.MaskSensitiveWhileBrowsing && !showSecrets,
+            Redaction = settings.ToRedactionOptions(),
             RepositoryId = repository.Id,
             Text = text,
             Mode = mode,
@@ -201,6 +212,9 @@ public static class Program
 
         Console.WriteLine();
         Console.WriteLine($"{result.Hits.Count} risultati in {result.Elapsed.TotalMilliseconds:N0} ms{(result.Truncated ? " (troncati: aumenta --limit)" : string.Empty)}");
+        Console.WriteLine(query.MaskSensitive
+            ? "Valori sensibili oscurati nelle anteprime (--show-secrets per vederli solo in locale)."
+            : "ATTENZIONE: anteprime senza oscuramento: non copiarle in servizi online.");
         if (!string.IsNullOrEmpty(result.Warning))
         {
             Console.WriteLine("Avviso: " + result.Warning);
@@ -220,8 +234,15 @@ public static class Program
         }
 
         var files = command.List("files");
+        var settings = provider.GetRequiredService<ISettingsStore>().Load();
+        var redaction = settings.ToRedactionOptions() with
+        {
+            FullConnectionStrings = settings.MaskFullConnectionStrings && !command.Flag("password-only"),
+            PersonalData = settings.MaskPersonalData || command.Flag("mask-personal-data"),
+        };
         var request = new ExportRequest
         {
+            Redaction = redaction,
             RepositoryId = repository.Id,
             OutputDirectory = output,
             Format = command.Option("format")?.ToLowerInvariant() is "md" or "markdown" ? ExportFormat.Markdown : ExportFormat.Text,

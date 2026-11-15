@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Lcia.App.Services;
@@ -80,10 +81,28 @@ public sealed partial class ExplorerViewModel : PageViewModel
     private readonly ITextFileReader _reader;
     private readonly ExportSelection _selection;
     private readonly IDialogService _dialogs;
+    private readonly ISecretScanner _secrets;
+    private readonly ISettingsStore _settings;
     private readonly ILogger<ExplorerViewModel> _logger;
     private IReadOnlyList<IndexedFile> _files = [];
     private long? _loadedRepositoryId;
     private long? _fileRepositoryId;
+
+    // Testo originale e versione con i valori sensibili oscurati (stesso numero di righe).
+    private string _rawText = string.Empty;
+    private string _maskedText = string.Empty;
+    private IReadOnlyList<int> _maskedLines = [];
+    private SourceLanguage _rawLanguage = SourceLanguage.Unknown;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RevealButtonText))]
+    private bool _isRevealed;
+
+    [ObservableProperty]
+    private bool _hasMaskedValues;
+
+    [ObservableProperty]
+    private string _maskInfo = string.Empty;
 
     [ObservableProperty]
     private string _treeFilter = string.Empty;
@@ -122,6 +141,8 @@ public sealed partial class ExplorerViewModel : PageViewModel
         ITextFileReader reader,
         ExportSelection selection,
         IDialogService dialogs,
+        ISecretScanner secrets,
+        ISettingsStore settings,
         ILogger<ExplorerViewModel> logger)
         : base("Esplora", "", "Albero dei file, visualizzatore del codice e simboli")
     {
@@ -130,12 +151,16 @@ public sealed partial class ExplorerViewModel : PageViewModel
         _reader = reader;
         _selection = selection;
         _dialogs = dialogs;
+        _secrets = secrets;
+        _settings = settings;
         _logger = logger;
         _context.RepositoryChanged += (_, _) => _loadedRepositoryId = null;
         _context.IndexUpdated += (_, _) => _loadedRepositoryId = null;
     }
 
     public ObservableCollection<FileTreeNode> RootNodes { get; } = [];
+
+    public string RevealButtonText => IsRevealed ? "Nascondi valori" : "Mostra valori";
 
     public ObservableCollection<SymbolRow> Symbols { get; } = [];
 
@@ -181,6 +206,7 @@ public sealed partial class ExplorerViewModel : PageViewModel
 
     private void ClearCurrentFile()
     {
+        ResetMask();
         _fileRepositoryId = null;
         CurrentFilePath = null;
         FileText = string.Empty;
@@ -227,6 +253,7 @@ public sealed partial class ExplorerViewModel : PageViewModel
             var read = await Task.Run(() => _reader.Read(fullPath, MaxViewerBytes, CancellationToken.None));
             if (read.Status != TextReadStatus.Ok || read.Text is null)
             {
+                ResetMask();
                 FileText = string.Empty;
                 CurrentFilePath = relativePath;
                 _fileRepositoryId = repository.Id;
@@ -235,11 +262,26 @@ public sealed partial class ExplorerViewModel : PageViewModel
                 return;
             }
 
+            var languageId = file?.Language ?? LanguageCatalog.FromPath(relativePath);
+            var settings = _settings.Load();
+            var text = read.Text;
+            var masked = (Text: text, Lines: (IReadOnlyList<int>)Array.Empty<int>());
+            if (settings.MaskSensitiveWhileBrowsing)
+            {
+                var options = settings.ToRedactionOptions();
+                masked = await Task.Run(() => Mask(text, relativePath, languageId, options));
+            }
+
             CurrentFilePath = relativePath;
             _fileRepositoryId = repository.Id;
-            FileText = read.Text;
+            _rawText = text;
+            _rawLanguage = languageId;
+            _maskedText = masked.Text;
+            _maskedLines = masked.Lines;
+            IsRevealed = false;
+            ShowCurrentText();
             IsModifiedSinceIndex = file?.Sha256 is not null && !string.Equals(file.Sha256, read.Sha256, StringComparison.OrdinalIgnoreCase);
-            var language = LanguageCatalog.Describe(file?.Language ?? LanguageCatalog.FromPath(relativePath));
+            var language = LanguageCatalog.Describe(languageId);
             FileInfo = $"{relativePath} · {language.DisplayName} · {read.LineCount:N0} righe · {DashboardViewModel.FormatBytes(read.SizeBytes)} · " +
                        $"{read.EncodingName} · analisi: {DashboardViewModel.SupportLabel(file?.AnalysisLevel ?? SupportLevel.TextOnly)}";
 
@@ -251,6 +293,120 @@ public sealed partial class ExplorerViewModel : PageViewModel
             _logger.LogError(ex, "Apertura del file non riuscita: {Path}", relativePath);
             FileInfo = $"Impossibile aprire {relativePath}: {ex.Message}";
         }
+    }
+
+    // ------------------------------------------------------------------ valori sensibili
+
+    /// <summary>Mostra o nasconde i valori sensibili del file aperto (solo sullo schermo, mai negli appunti per l'AI).</summary>
+    [RelayCommand]
+    private void ToggleReveal()
+    {
+        if (!HasMaskedValues)
+        {
+            return;
+        }
+
+        if (!IsRevealed && !_dialogs.Confirm(
+                "Mostra valori sensibili",
+                "Verranno mostrati in chiaro password, token, chiavi e connection string di questo file.\n\n" +
+                "Restano solo sul tuo PC: non copiarli in un'AI online o in altri servizi. Continuare?"))
+        {
+            return;
+        }
+
+        IsRevealed = !IsRevealed;
+        ShowCurrentText();
+    }
+
+    /// <summary>
+    /// Copia negli appunti il file aperto pronto da incollare in un'AI: percorso, linguaggio e contenuto con i
+    /// valori sensibili sempre oscurati (anche se sono visibili nel visualizzatore).
+    /// </summary>
+    [RelayCommand]
+    private async Task CopyForAiAsync()
+    {
+        if (CurrentFilePath is null || _rawText.Length == 0)
+        {
+            StatusText = "Apri prima un file.";
+            return;
+        }
+
+        var path = CurrentFilePath;
+        var text = _rawText;
+        var language = _rawLanguage;
+        var options = _settings.Load().ToRedactionOptions();
+        var masked = await Task.Run(() => Mask(text, path, language, options));
+        var builder = new StringBuilder();
+        builder.Append("FILE: ").AppendLine(path);
+        builder.Append("```").AppendLine(LanguageCatalog.Describe(language).MarkdownFence);
+        builder.AppendLine(masked.Text.TrimEnd('\n'));
+        builder.AppendLine("```");
+        if (masked.Lines.Count > 0)
+        {
+            builder.AppendLine("(Valori sensibili sostituiti con [REDACTED:<categoria>] di proposito.)");
+        }
+
+        StatusText = _dialogs.TrySetClipboard(builder.ToString())
+            ? $"{path} copiato per l'AI: {masked.Lines.Count} righe con valori sensibili oscurati."
+            : "Impossibile accedere agli appunti: riprova.";
+    }
+
+    private (string Text, IReadOnlyList<int> Lines) Mask(string text, string relativePath, SourceLanguage language, RedactionOptions options)
+    {
+        if (SensitiveFiles.IsSensitive(relativePath))
+        {
+            // File come .env o secrets.json: nessuna riga viene mostrata.
+            var lines = TextLines.Split(text);
+            var maskedLines = new List<int>();
+            for (var i = 0; i < lines.Count; i++)
+            {
+                if (lines[i].Trim().Length > 0)
+                {
+                    lines[i] = "[REDACTED:sensitive-file]";
+                    maskedLines.Add(i + 1);
+                }
+            }
+
+            return (string.Join("\n", lines), maskedLines);
+        }
+
+        var result = _secrets.Redact(text, language, options);
+        var found = result.Findings.Select(f => f.Line).Where(l => l > 0).Distinct().OrderBy(l => l).ToArray();
+        return (found.Length == 0 ? text : result.Text, found);
+    }
+
+    private void ShowCurrentText()
+    {
+        HasMaskedValues = _maskedLines.Count > 0;
+        if (!HasMaskedValues)
+        {
+            FileText = _rawText;
+            MaskInfo = string.Empty;
+            return;
+        }
+
+        if (IsRevealed)
+        {
+            FileText = _rawText;
+            MaskInfo = "Valori sensibili VISIBILI: restano sul tuo PC, non copiarli in un'AI online.";
+            return;
+        }
+
+        FileText = _maskedText;
+        var shown = string.Join(", ", _maskedLines.Take(8));
+        var more = _maskedLines.Count > 8 ? ", …" : string.Empty;
+        MaskInfo = $"Valori sensibili oscurati in {_maskedLines.Count} righe ({shown}{more}). \"Copia per AI\" li mantiene oscurati.";
+    }
+
+    private void ResetMask()
+    {
+        _rawText = string.Empty;
+        _maskedText = string.Empty;
+        _maskedLines = [];
+        _rawLanguage = SourceLanguage.Unknown;
+        IsRevealed = false;
+        HasMaskedValues = false;
+        MaskInfo = string.Empty;
     }
 
     private async Task LoadSymbolsAsync(IndexedFile? file)

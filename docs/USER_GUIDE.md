@@ -35,6 +35,11 @@ evidenziazione, e pannello **Simboli del file** (clic per andare alla riga). Se 
 l'indicizzazione compare un avviso. **Aggiungi a esportazione** mette il file o la cartella selezionata nella
 selezione personalizzata.
 
+Password, token, chiavi e connection string vengono mostrati già oscurati (`[REDACTED:<tipo>]`): un riquadro
+indica quante righe sono state oscurate. **Copia per AI (oscurato)** copia negli appunti percorso e contenuto del
+file pronti da incollare in un'AI online, sempre oscurati. **Mostra valori** rivela i valori originali solo sul
+tuo schermo, dopo una conferma (vedi [Protezione dei dati sensibili](#5-protezione-dei-dati-sensibili)).
+
 ### Cerca
 | Modalità | Cosa fa | Esempio |
 |---|---|---|
@@ -47,7 +52,7 @@ selezione personalizzata.
 Filtri combinabili: estensioni, percorso, progetto, tipo di simbolo, tipo di relazione, maiuscole/minuscole,
 numero massimo di risultati. Ogni risultato riporta file, riga, anteprima, dettaglio e progetto; doppio clic o
 **Apri nel visualizzatore** apre il file alla riga. Puoi selezionare più risultati e **aggiungerli
-all'esportazione** o **copiarli** negli appunti.
+all'esportazione** o **copiarli** negli appunti. Anteprime e testo copiato hanno i valori sensibili oscurati.
 
 I riferimenti in questa versione sono **sintattici**: un nome uguale in namespace diversi può dare falsi positivi.
 Il livello di evidenza è indicato nel dettaglio (`verificata direttamente`, `riferimento testuale`, `dinamica`, …).
@@ -58,8 +63,9 @@ Il livello di evidenza è indicato nel dettaglio (`verificata direttamente`, `ri
 3. **Contenuto**: albero, elenco file, progetti e pacchetti, indice dei simboli e riferimenti, codice integrale,
    numeri di riga, percorso assoluto della radice (spento per impostazione predefinita).
 4. **Filtri**: estensioni, cartelle incluse, cartelle escluse.
-5. **Sicurezza**: oscuramento dei segreti (attivo) e inclusione dei file sensibili (spenta). Disattivare
-   l'oscuramento o includere i file sensibili richiede una conferma esplicita.
+5. **Sicurezza**: oscuramento dei segreti (attivo), connection string oscurate per intero (attivo), email e
+   indirizzi IP (spento), inclusione dei file sensibili (spenta). Le scelte partono da quelle delle Impostazioni.
+   Disattivare l'oscuramento o includere i file sensibili richiede una conferma esplicita.
 6. **Suddivisione**: file unico o parti da ~32k / 100k / 200k / 500k / 1M token (stima: 4 caratteri ≈ 1 token).
    Con più parti viene creato anche un file indice che le elenca.
 7. **Destinazione**: una cartella **esterna** al repository. **Stima** mostra file, dimensione, token e parti
@@ -70,6 +76,9 @@ Messaggi dell'applicazione in tempo reale, filtrabili per livello (informazioni,
 `%LOCALAPPDATA%\LocalCodeIntelligenceAnalyzer\logs` e non contengono i valori dei segreti.
 
 ### Impostazioni
+- **Protezione dei dati sensibili**: oscuramento anche durante la consultazione (attivo), connection string per
+  intero (attivo), email e indirizzi IP (spento). Valgono per Esplora, Cerca, copia negli appunti, riga di comando
+  e come punto di partenza per Esporta.
 - **Aspetto**: tema (come Windows, chiaro, scuro) applicato subito; stile Fluent di Windows 11 (al riavvio).
 - **Scansione**: cartelle escluse per nome (es. `bin`, `obj`, `node_modules`, `.git`, `.vs`), percorsi relativi
   esclusi, dimensione massima per file (predefinita 2 MB), profondità massima, parallelismo, collegamenti simbolici.
@@ -105,7 +114,44 @@ tutte, con le parole evidenziate. In basso le scorciatoie da tastiera e le infor
 | `Invio` (in Cerca) | Avvia la ricerca |
 | Doppio clic su un risultato | Apre il file alla riga trovata |
 
-## 5. Formato del dossier esportato
+## 5. Protezione dei dati sensibili
+
+LCIA è pensato per preparare codice da far analizzare anche a un'AI online: per questo i valori sensibili vengono
+**oscurati prima di uscire dall'applicazione**, sia mentre consulti il codice sia nei dossier esportati. Il
+valore viene sostituito da `[REDACTED:<tipo>]`; i file originali non vengono mai modificati.
+
+| Cosa | Esempio | Sempre | Opzione |
+|---|---|---|---|
+| Password, segreti e chiavi API in configurazione, codice e SQL | `"Password": "..."`, `api_key = "..."`, `CREATE LOGIN ... PASSWORD = '...'` | ✓ | |
+| Token e chiavi noti | GitHub, npm, NuGet, Slack, SendGrid, Stripe, AWS, Azure, Google, chiavi `sk-…`, JWT, `Bearer` e `Basic` | ✓ | |
+| Chiavi private e certificati | blocchi `-----BEGIN ... PRIVATE KEY-----` | ✓ | |
+| Connection string per intero | `Server=…;Database=…;User Id=…;Password=…` → `[REDACTED:connection-string]` | | attiva |
+| Solo la password delle connection string | `Server=sql01;Database=Shop;Password=[REDACTED:...]` | | se spegni la precedente |
+| Email e indirizzi IP | `mario.rossi@azienda.it`, `10.0.4.17` | | spenta |
+
+Le connection string vengono riconosciute in JSON, XML e `.config`, YAML, file di testo e log, script SQL e
+nelle stringhe del codice (C# e altri linguaggi). I segnaposto (`<password>`, `${VAR}`, `$(VAR)`, `%VAR%`,
+`{{VAR}}`, `***`) restano visibili perché non sono segreti. Con l'opzione email e IP non vengono oscurati
+`127.0.0.1`, `0.0.0.0`, le maschere di rete comuni e le righe con numeri di versione. I file sensibili (`.env`, `secrets.json`, `*.pfx`, `*.key`, …) non vengono mostrati
+nelle anteprime di Cerca né esportati.
+
+Dove agisce:
+- **Esplora**: il codice è mostrato oscurato; **Copia per AI (oscurato)** copia percorso e contenuto oscurato;
+  **Mostra valori** rivela gli originali solo sul tuo schermo (con conferma) e **Nascondi valori** li oscura di
+  nuovo. Anche la selezione copiata con Ctrl+C è oscurata finché i valori sono nascosti.
+- **Cerca**: anteprime e dettagli dei risultati, e il testo copiato con **Copia**. La ricerca avviene comunque sul
+  testo originale, quindi trovi una riga anche cercando un valore che poi viene mostrato oscurato.
+- **Esporta**: il dossier riporta nell'intestazione `REDACTION SCOPE` (cosa è stato oscurato) e, per ogni file,
+  `REDACTED VALUES:` con le righe interessate, mai i valori.
+- **Riga di comando**: `lcia search` oscura le anteprime (`--show-secrets` le mostra solo sul tuo terminale);
+  `lcia export` usa le Impostazioni, con `--mask-personal-data` e `--password-only` per cambiarle al volo.
+- **Log**: ogni riga passa dallo stesso filtro.
+
+Le scelte si trovano in **Impostazioni > Protezione dei dati sensibili**. Il riconoscimento è euristico: un
+formato sconosciuto o un segreto senza nomi riconoscibili (es. `var x = "a8F...";`) può sfuggire, e qualche valore
+innocuo può essere oscurato per prudenza. **Rileggi sempre il testo prima di incollarlo in un servizio online.**
+
+## 6. Formato del dossier esportato
 
 Le etichette sono in inglese, stabili e pensate per essere lette da un modello AI:
 
@@ -150,13 +196,13 @@ con i **limiti dell'analisi** (cosa non è stato verificato). I file troppo gran
 con gli avvisi `CONTINUES IN NEXT PART` / `CONTINUED FROM PREVIOUS PART`.
 
 ### Segreti
-Vengono riconosciuti e sostituiti con `[REDACTED:<tipo>]`: chiavi private PEM, password e segreti in
-connection string, JSON e file di configurazione, token noti (GitHub, chiavi cloud, JWT), stringhe con
-`password`/`secret`/`apikey` nei sorgenti. Il blocco del file riporta `REDACTED VALUES:` con le righe interessate
-(mai i valori). I file sensibili (`.env`, `secrets.json`, `*.pfx`, `*.key`, …) sono esclusi.
-Il riconoscimento è euristico: **rileggi sempre il dossier prima di condividerlo**.
+Vengono sostituiti con `[REDACTED:<tipo>]` come descritto in
+[Protezione dei dati sensibili](#5-protezione-dei-dati-sensibili). L'intestazione riporta `REDACTION SCOPE`,
+il blocco di ogni file `REDACTED VALUES:` con le righe interessate (mai i valori). I file sensibili (`.env`,
+`secrets.json`, `*.pfx`, `*.key`, …) sono esclusi. Il riconoscimento è euristico: **rileggi sempre il dossier
+prima di condividerlo**.
 
-## 6. Riga di comando (`lcia.exe`)
+## 7. Riga di comando (`lcia.exe`)
 
 Dopo l'installazione con il PATH attivato, `lcia` funziona da qualsiasi nuovo terminale.
 
@@ -172,11 +218,13 @@ lcia remove C:\src\MioProgetto --yes              # rimuove solo l'indice
 ```
 
 Opzioni di `export`: `--ext`, `--folder`, `--exclude-folder`, `--files`, `--name`, `--no-line-numbers`,
-`--no-source`, `--no-tree`, `--no-symbols`, `--absolute-paths`. Disattivare l'oscuramento richiede entrambe le
-opzioni `--no-redact --i-understand-secrets-risk`. Opzioni comuni: `--data-dir`, `--verbose`.
+`--no-source`, `--no-tree`, `--no-symbols`, `--absolute-paths`, `--mask-personal-data` (oscura anche email e IP),
+`--password-only` (delle connection string oscura solo la password). Disattivare l'oscuramento richiede entrambe
+le opzioni `--no-redact --i-understand-secrets-risk`. Opzione di `search`: `--show-secrets` (anteprime non
+oscurate, solo sul tuo terminale). Opzioni comuni: `--data-dir`, `--verbose`.
 Codici di uscita: 0 ok, 1 errore, 2 uso non corretto, 3 annullato.
 
-## 7. Installazione e aggiornamenti
+## 8. Installazione e aggiornamenti
 
 - **Installare o aggiornare**: doppio clic su `Installa-o-aggiorna-app.bat` nella cartella del progetto. Compila,
   esegue i test e installa per il tuo utente (menu Start, desktop se vuoi, comando `lcia`). Se l'app è aperta
@@ -186,7 +234,7 @@ Codici di uscita: 0 ok, 1 errore, 2 uso non corretto, 3 annullato.
 - **Disinstallare**: `Disinstalla-app.bat` oppure Impostazioni di Windows > App > App installate. Indice, log e
   impostazioni vengono eliminati solo se lo confermi.
 
-## 8. Domande frequenti
+## 9. Domande frequenti
 
 ### Dove si trova l'indice e quanto occupa?
 In `%LOCALAPPDATA%\LocalCodeIntelligenceAnalyzer\index`. Contiene una copia del testo dei file indicizzati più
@@ -205,3 +253,12 @@ No: LCIA legge la cartella `.git` come file, senza eseguire comandi Git, e non s
 ### Il codice viene inviato a un'AI o su internet?
 No. L'analisi è interamente locale. Il dossier esportato resta nella cartella che scegli: sei tu a decidere se e
 dove usarlo.
+
+### Posso incollare in ChatGPT, Claude o Copilot il codice copiato da LCIA?
+Sì, è lo scopo di **Copia per AI (oscurato)** e dell'esportazione: password, token, chiavi e connection string
+sono già oscurati. Attiva anche **email e indirizzi IP** se il codice contiene dati personali o indirizzi interni,
+e rileggi il testo prima di inviarlo: il riconoscimento non può garantire di trovare ogni segreto.
+
+### Ho bisogno di vedere la password vera per fare una prova
+In Esplora usa **Mostra valori**: il valore compare solo sullo schermo. Da riga di comando,
+`lcia search ... --show-secrets`. In entrambi i casi non copiare quel testo in servizi online.

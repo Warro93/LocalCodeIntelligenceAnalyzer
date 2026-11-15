@@ -40,6 +40,15 @@ public sealed partial class SettingsViewModel : PageViewModel
     private bool _useFluentTheme;
 
     [ObservableProperty]
+    private bool _maskSensitiveWhileBrowsing;
+
+    [ObservableProperty]
+    private bool _maskFullConnectionStrings;
+
+    [ObservableProperty]
+    private bool _maskPersonalData;
+
+    [ObservableProperty]
     private string _statusText = string.Empty;
 
     [ObservableProperty]
@@ -121,6 +130,9 @@ public sealed partial class SettingsViewModel : PageViewModel
         settings.MaxDegreeOfParallelism = Math.Clamp(MaxDegreeOfParallelism, 1, 64);
         settings.FollowSymbolicLinks = FollowSymbolicLinks;
         settings.UseFluentTheme = UseFluentTheme;
+        settings.MaskSensitiveWhileBrowsing = MaskSensitiveWhileBrowsing;
+        settings.MaskFullConnectionStrings = MaskFullConnectionStrings;
+        settings.MaskPersonalData = MaskPersonalData;
         try
         {
             _store.Save(settings);
@@ -165,6 +177,9 @@ public sealed partial class SettingsViewModel : PageViewModel
         MaxDegreeOfParallelism = settings.MaxDegreeOfParallelism;
         FollowSymbolicLinks = settings.FollowSymbolicLinks;
         UseFluentTheme = settings.UseFluentTheme;
+        MaskSensitiveWhileBrowsing = settings.MaskSensitiveWhileBrowsing;
+        MaskFullConnectionStrings = settings.MaskFullConnectionStrings;
+        MaskPersonalData = settings.MaskPersonalData;
     }
 
     private static List<string> Split(string text) =>

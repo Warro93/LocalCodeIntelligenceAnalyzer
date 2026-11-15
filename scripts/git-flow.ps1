@@ -180,9 +180,15 @@ function Set-VersionWithCommit {
     if (-not (Initialize-LciaGitIdentity -Root $root)) { exit 0 }
     [void](Set-LciaProjectVersion -Root $root -Version $Version)
     Invoke-Step -Arguments @('add', 'Directory.Build.props') -FailMessage 'git add non riuscito.'
+    $message = "Versione $Version"
+    if (Set-LciaChangelogRelease -Path (Join-Path $root 'CHANGELOG.md') -Version $Version) {
+        Invoke-Step -Arguments @('add', 'CHANGELOG.md') -FailMessage 'git add non riuscito.'
+        $message = "Versione $Version (CHANGELOG: note 'Non rilasciato' assegnate alla versione)"
+        Write-LciaOk "CHANGELOG.md: la sezione 'Non rilasciato' è diventata '## [$Version]'."
+    }
     $arguments = @('commit')
     if ($sign) { $arguments += '-S' }
-    $arguments += @('-m', "Versione $Version")
+    $arguments += @('-m', $message)
     Invoke-Step -Arguments $arguments -FailMessage 'Commit della nuova versione non riuscito.'
     Write-LciaOk "Versione impostata a $Version (commit creato)."
 }
@@ -355,7 +361,20 @@ function Invoke-Finish {
     }
     Assert-Develop
     Switch-ToBranch $branch
-    $notes = Get-LciaChangelogSection -Path (Join-Path $root 'CHANGELOG.md') -Version $version
+    $changelog = Join-Path $root 'CHANGELOG.md'
+    $notes = Get-LciaChangelogSection -Path $changelog -Version $version
+    $unreleased = Get-LciaChangelogSection -Path $changelog -Version 'Non rilasciato'
+    if ($notes.Count -eq 0 -and $unreleased.Count -gt 0 -and
+        (Read-LciaYesNo "CHANGELOG.md non ha ancora la sezione ${version}: usare le note 'Non rilasciato'?" -DefaultYes)) {
+        if (-not (Initialize-LciaGitIdentity -Root $root)) { exit 0 }
+        [void](Set-LciaChangelogRelease -Path $changelog -Version $version)
+        Invoke-Step -Arguments @('add', 'CHANGELOG.md') -FailMessage 'git add non riuscito.'
+        $arguments = @('commit')
+        if ($sign) { $arguments += '-S' }
+        $arguments += @('-m', "CHANGELOG: note della versione $version")
+        Invoke-Step -Arguments $arguments -FailMessage 'Commit del CHANGELOG non riuscito.'
+        $notes = Get-LciaChangelogSection -Path $changelog -Version $version
+    }
     if ($notes.Count -eq 0) {
         Write-LciaErr "CHANGELOG.md non contiene la sezione '## [$version]' con le novità."
         Write-LciaInfo 'Aggiungila su questo branch, salvala con GitHub-2-invia-modifiche.bat e rilancia.'

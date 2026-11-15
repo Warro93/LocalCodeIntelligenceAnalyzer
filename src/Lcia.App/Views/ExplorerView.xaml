@@ -65,7 +65,29 @@
                 <TextBlock DockPanel.Dock="Top" Style="{StaticResource Warning}" Margin="0,0,0,4"
                            Text="Il file è cambiato dopo l'ultima indicizzazione: aggiorna l'indice per allineare simboli e ricerca."
                            Visibility="{Binding IsModifiedSinceIndex, Converter={StaticResource BoolToVisibility}}" />
+                <!-- Valori sensibili oscurati nel file aperto -->
+                <Border DockPanel.Dock="Top" Style="{StaticResource InfoCard}" Margin="0,0,0,6" Padding="10,6"
+                        Visibility="{Binding HasMaskedValues, Converter={StaticResource BoolToVisibility}}">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Command="{Binding ToggleRevealCommand}" Padding="8,2" Margin="8,0,0,0"
+                                ToolTip="Mostra o nasconde i valori in chiaro, solo su questo schermo">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7B3;" Style="{StaticResource IconText}" Margin="0,0,6,0" />
+                                <TextBlock Text="{Binding RevealButtonText}" />
+                            </StackPanel>
+                        </Button>
+                        <TextBlock Text="&#xE72E;" Style="{StaticResource IconText}" Margin="0,0,8,0" />
+                        <TextBlock Text="{Binding MaskInfo}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </DockPanel>
+                </Border>
                 <WrapPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+                    <Button Command="{Binding CopyForAiCommand}" Margin="0,0,6,0" Padding="8,3" FontWeight="SemiBold"
+                            ToolTip="Copia il file negli appunti pronto per un'AI online: percorso, linguaggio e contenuto con password, token e connection string oscurati">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE8C8;" Style="{StaticResource IconText}" Margin="0,0,6,0" />
+                            <TextBlock Text="Copia per AI (oscurato)" />
+                        </StackPanel>
+                    </Button>
                     <Button Content="Mostra in Esplora file" Command="{Binding RevealInExplorerCommand}" Margin="0,0,6,0" Padding="8,3" />
                     <Button Content="Copia percorso relativo" Command="{Binding CopyPathCommand}" Padding="8,3" />
                 </WrapPanel>

@@ -34,4 +34,14 @@ public sealed class SettingsTests
         Assert.Equal(512, settings.MaxFileSizeKb);
         Assert.Equal(AppTheme.System, settings.Theme);
     }
+
+    [Fact]
+    public void SensitiveDataProtectionIsOnByDefault()
+    {
+        var settings = new AppSettings();
+        Assert.True(settings.MaskSensitiveWhileBrowsing);
+        Assert.True(settings.MaskFullConnectionStrings);
+        Assert.False(settings.MaskPersonalData);
+        Assert.Equal(new RedactionOptions { FullConnectionStrings = true, PersonalData = false }, settings.ToRedactionOptions());
+    }
 }

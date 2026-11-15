@@ -201,3 +201,22 @@ Describe 'Git Flow' {
         { Set-LciaProjectVersion -Root $root -Version '0.3' } | Should -Throw
     }
 }
+
+Describe 'Set-LciaChangelogRelease' {
+    It 'assegna le note "Non rilasciato" alla versione e lascia una sezione vuota sopra' {
+        $file = Join-Path $TestDrive 'CHANGELOG-release.md'
+        [System.IO.File]::WriteAllText($file, "# Changelog`r`n`r`n## [Non rilasciato]`r`n`r`n### Aggiunto`r`n- novita`r`n`r`n## [0.2.3] - 2026-11-15`r`n- vecchio`r`n")
+        Set-LciaChangelogRelease -Path $file -Version '0.3.0' -Date '2026-12-01' | Should -BeTrue
+        $text = [System.IO.File]::ReadAllText($file)
+        $text | Should -Match "## \[Non rilasciato\]`r`n`r`n## \[0\.3\.0\] - 2026-12-01`r`n"
+        ((Get-LciaChangelogSection -Path $file -Version '0.3.0') -join '|') | Should -Be '### Aggiunto|- novita'
+        (Get-LciaChangelogSection -Path $file -Version 'Non rilasciato').Count | Should -Be 0
+        Set-LciaChangelogRelease -Path $file -Version '0.3.0' | Should -BeFalse
+    }
+
+    It 'non cambia nulla senza la sezione "Non rilasciato"' {
+        $file = Join-Path $TestDrive 'CHANGELOG-none.md'
+        [System.IO.File]::WriteAllText($file, "# Changelog`n`n## [0.2.3] - 2026-11-15`n- vecchio`n")
+        Set-LciaChangelogRelease -Path $file -Version '0.3.0' | Should -BeFalse
+    }
+}

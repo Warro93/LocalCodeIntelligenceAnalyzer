@@ -24,6 +24,23 @@
                 </StackPanel>
             </Border>
 
+            <!-- Protezione dei dati sensibili -->
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="Protezione dei dati sensibili" Style="{StaticResource CardTitle}" />
+                    <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,8"
+                               Text="Password, token, chiavi API, chiavi private e certificati vengono sempre oscurati nei dossier esportati. Qui scegli cosa oscurare in più e se farlo anche mentre consulti il codice, così ciò che copi per un'AI online non contiene credenziali." />
+                    <CheckBox IsChecked="{Binding MaskSensitiveWhileBrowsing}" Margin="0,0,0,6"
+                              Content="Oscura i valori sensibili anche durante la consultazione (Esplora, risultati di Cerca, copia negli appunti, riga di comando)" />
+                    <CheckBox IsChecked="{Binding MaskFullConnectionStrings}" Margin="0,0,0,6"
+                              Content="Oscura le connection string per intero: server, database, utente e password (non solo la password)" />
+                    <CheckBox IsChecked="{Binding MaskPersonalData}" Margin="0,0,0,4"
+                              Content="Oscura anche indirizzi email e indirizzi IP (esclusi 127.0.0.1 e numeri di versione)" />
+                    <TextBlock Style="{StaticResource Muted}" FontSize="12" Margin="0,4,0,0"
+                               Text="Il riconoscimento è automatico e prudente, ma non può garantire di trovare ogni formato: rileggi sempre ciò che invii a servizi esterni. Le modifiche valgono dopo Salva." />
+                </StackPanel>
+            </Border>
+
             <!-- Scansione -->
             <Border Style="{StaticResource Card}">
                 <StackPanel>

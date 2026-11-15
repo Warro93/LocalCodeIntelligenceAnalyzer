@@ -6,7 +6,7 @@ internal sealed class CommandLine
     private static readonly HashSet<string> KnownFlags = new(StringComparer.OrdinalIgnoreCase)
     {
         "force", "follow-links", "case", "no-line-numbers", "no-source", "no-tree", "no-symbols", "absolute-paths",
-        "no-redact", "i-understand-secrets-risk", "yes", "verbose",
+        "no-redact", "i-understand-secrets-risk", "yes", "verbose", "show-secrets", "mask-personal-data", "password-only",
     };
 
     private readonly List<string> _arguments = [];

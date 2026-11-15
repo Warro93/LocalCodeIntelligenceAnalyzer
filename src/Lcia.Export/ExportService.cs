@@ -172,7 +172,7 @@ public sealed class ExportService : IExportService
                         var text = read.Text;
                         if (request.RedactSecrets)
                         {
-                            var redaction = _secrets.Redact(text, file.Language);
+                            var redaction = _secrets.Redact(text, file.Language, request.Redaction);
                             text = redaction.Text;
                             findings = redaction.Findings;
                         }

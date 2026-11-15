@@ -72,6 +72,14 @@ public sealed partial class ExportViewModel : PageViewModel
     [ObservableProperty]
     private bool _includeSensitiveFiles;
 
+    /// <summary>Oscura le connection string per intero (server, database, utente). Valore iniziale dalle impostazioni.</summary>
+    [ObservableProperty]
+    private bool _maskFullConnectionStrings = true;
+
+    /// <summary>Oscura anche email e indirizzi IP. Valore iniziale dalle impostazioni.</summary>
+    [ObservableProperty]
+    private bool _maskPersonalData;
+
     [ObservableProperty]
     private string _planText = "Premi 'Stima' per calcolare file, dimensione e token prima di esportare.";
 
@@ -105,6 +113,17 @@ public sealed partial class ExportViewModel : PageViewModel
         var stored = settings.Load();
         _outputDirectory = stored.LastExportDirectory ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LCIA-Exports");
         _selectedPartSize = PartSizes.FirstOrDefault(p => p.Value == stored.DefaultMaxPartTokens) ?? PartSizes[0];
+        _maskFullConnectionStrings = stored.MaskFullConnectionStrings;
+        _maskPersonalData = stored.MaskPersonalData;
+    }
+
+    public override Task OnActivatedAsync()
+    {
+        // Allinea le opzioni di oscuramento alle impostazioni (possono essere cambiate nel frattempo).
+        var stored = _settings.Load();
+        MaskFullConnectionStrings = stored.MaskFullConnectionStrings;
+        MaskPersonalData = stored.MaskPersonalData;
+        return base.OnActivatedAsync();
     }
 
     public ExportSelection Selection { get; }
@@ -321,6 +340,7 @@ public sealed partial class ExportViewModel : PageViewModel
             IncludeAbsolutePaths = IncludeAbsolutePaths,
             RedactSecrets = RedactSecrets,
             UnredactedExportConfirmed = !RedactSecrets && _unredactedConfirmed,
+            Redaction = new RedactionOptions { FullConnectionStrings = MaskFullConnectionStrings, PersonalData = MaskPersonalData },
             IncludeSensitiveFiles = IncludeSensitiveFiles,
             SensitiveFilesConfirmed = IncludeSensitiveFiles && _sensitiveConfirmed,
             MaxPartTokens = SelectedPartSize.Value,

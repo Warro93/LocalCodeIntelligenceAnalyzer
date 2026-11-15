@@ -201,6 +201,7 @@ La versione dello schema è in `PRAGMA user_version`; le migrazioni sono applica
 | Rischio | Contromisura |
 |---|---|
 | Fuga di segreti nei dossier | `RegexSecretScanner` (token noti, chiavi PEM, connection string, chiavi di configurazione, segreti nel codice); esclusione di `secrets.json`, `.env`, chiavi; conferma esplicita per disattivare |
+| Segreti copiati verso AI online durante la consultazione | Stesso scanner con `RedactionOptions` (connection string intere, email/IP opzionali) applicato al visualizzatore di Esplora, alle anteprime di `SqliteSearchService` (`SearchQuery.MaskSensitive`), agli appunti e alla CLI; l'indice FTS resta sul testo originale e i valori reali si vedono solo con un'azione esplicita |
 | Segreti nei log | Ogni riga di log passa dallo stesso filtro; nessun contenuto dei file viene registrato |
 | Path traversal | `PathUtilities.ResolveInside` su ogni accesso a file da percorso relativo; link esterni ignorati |
 | Modifica dei repository | Apertura dei file in sola lettura con condivisione; export solo in cartelle esterne; test con confronto hash |

@@ -23,7 +23,9 @@ public sealed partial class SearchViewModel : PageViewModel
     private readonly IIndexStore _store;
     private readonly ExportSelection _selection;
     private readonly IDialogService _dialogs;
+    private readonly ISettingsStore _settings;
     private readonly ILogger<SearchViewModel> _logger;
+    private bool _lastSearchMasked = true;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SearchCommand))]
@@ -66,6 +68,7 @@ public sealed partial class SearchViewModel : PageViewModel
         IIndexStore store,
         ExportSelection selection,
         IDialogService dialogs,
+        ISettingsStore settings,
         ILogger<SearchViewModel> logger)
         : base("Cerca", "", "Testo, regex, simboli e riferimenti con filtri combinabili")
     {
@@ -74,6 +77,7 @@ public sealed partial class SearchViewModel : PageViewModel
         _store = store;
         _selection = selection;
         _dialogs = dialogs;
+        _settings = settings;
         _logger = logger;
         _selectedMode = Modes[0];
         _selectedSymbolKind = SymbolKinds[0];
@@ -154,8 +158,11 @@ public sealed partial class SearchViewModel : PageViewModel
             return;
         }
 
+        var settings = _settings.Load();
         var query = new SearchQuery
         {
+            MaskSensitive = settings.MaskSensitiveWhileBrowsing,
+            Redaction = settings.ToRedactionOptions(),
             RepositoryId = repository.Id,
             Text = QueryText.Trim(),
             Mode = SelectedMode.Value,
@@ -168,6 +175,7 @@ public sealed partial class SearchViewModel : PageViewModel
             MaxResults = Math.Clamp(MaxResults, 1, 20000),
         };
 
+        _lastSearchMasked = query.MaskSensitive;
         Summary = "Ricerca in corso…";
         Warning = null;
         try
@@ -227,6 +235,11 @@ public sealed partial class SearchViewModel : PageViewModel
         }
 
         var builder = new StringBuilder();
+        if (_lastSearchMasked)
+        {
+            builder.AppendLine("(valori sensibili oscurati: password, token, chiavi e connection string sono sostituiti da [REDACTED:...])");
+        }
+
         foreach (var row in Results)
         {
             builder.Append(row.RelativePath).Append(':').Append(row.Line).Append(": ").Append(row.Preview);
@@ -239,7 +252,7 @@ public sealed partial class SearchViewModel : PageViewModel
         }
 
         Summary = _dialogs.TrySetClipboard(builder.ToString())
-            ? $"{Results.Count} risultati copiati negli appunti (percorso:riga: testo)."
+            ? $"{Results.Count} risultati copiati negli appunti (percorso:riga: testo)" + (_lastSearchMasked ? ", con i valori sensibili oscurati." : ". ATTENZIONE: oscuramento disattivato nelle impostazioni.")
             : "Impossibile accedere agli appunti: riprova.";
     }
 

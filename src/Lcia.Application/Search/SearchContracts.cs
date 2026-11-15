@@ -53,6 +53,15 @@ public sealed record SearchQuery
     public IReadOnlyCollection<RelationKind> RelationKinds { get; init; } = [];
 
     public int MaxResults { get; init; } = 500;
+
+    /// <summary>
+    /// Oscura password, token, chiavi e connection string nelle anteprime dei risultati (predefinito: attivo).
+    /// La ricerca avviene comunque sul contenuto reale; cambia solo ciò che viene mostrato o copiato.
+    /// </summary>
+    public bool MaskSensitive { get; init; } = true;
+
+    /// <summary>Opzioni di oscuramento (connection string complete, dati personali). Null = predefinite.</summary>
+    public RedactionOptions? Redaction { get; init; }
 }
 
 public sealed record SearchHit(

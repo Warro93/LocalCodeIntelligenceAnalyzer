@@ -153,10 +153,12 @@ Voci del menu:
 1. **Inizializza Git Flow**: crea `develop` da `main` e lo invia su GitHub (una volta sola).
 2. **Nuova feature**: chiede un nome (es. "ricerca sql" → `feature/ricerca-sql`) e crea il branch da `develop`.
 3. **Nuova release**: propone la versione successiva (es. 0.2.3 → 0.3.0), crea `release/0.3.0` da `develop` e
-   aggiorna la versione in `Directory.Build.props` con un commit firmato.
+   aggiorna la versione in `Directory.Build.props` con un commit firmato. Nello stesso commit le note scritte
+   sotto `## [Non rilasciato]` in `CHANGELOG.md` diventano `## [0.3.0] - data` (sopra resta una sezione
+   "Non rilasciato" vuota per il lavoro successivo).
 4. **Nuovo hotfix**: come la release, ma parte da `main` e propone la patch successiva (es. 0.2.4).
 5. **Chiudi il branch corrente**: feature → merge in `develop`; release/hotfix → controlla la sezione del
-   CHANGELOG, merge in `main`, tag firmato `vX.Y.Z` (GitHub Actions pubblica la release), merge in `develop`,
+   CHANGELOG (se manca ma ci sono note "Non rilasciato" propone di usarle), merge in `main`, tag firmato `vX.Y.Z` (GitHub Actions pubblica la release), merge in `develop`,
    eliminazione del branch. I merge sono `--no-ff` e firmati.
 6. **Stato dei branch**: branch locali e su GitHub.
 

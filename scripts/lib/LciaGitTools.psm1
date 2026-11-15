@@ -623,6 +623,30 @@ function Get-LciaChangelogSection {
     return ,$lines.ToArray()
 }
 
+function Set-LciaChangelogRelease {
+    <#
+    .SYNOPSIS
+    Trasforma la sezione "## [Non rilasciato]" (o "## [Unreleased]") di CHANGELOG.md nella sezione della versione
+    ("## [X.Y.Z] - data") e lascia sopra una nuova sezione "Non rilasciato" vuota. $true se il file è cambiato.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][string]$Version,
+        [string]$Date = (Get-Date).ToString('yyyy-MM-dd')
+    )
+    if (-not (Test-Path -LiteralPath $Path)) { return $false }
+    $text = [System.IO.File]::ReadAllText($Path)
+    if ($text -match ('(?m)^## \[' + [regex]::Escape($Version) + '\]')) { return $false }
+    $pattern = New-Object System.Text.RegularExpressions.Regex('(?m)^## \[(?:Non rilasciato|Unreleased)\][^\r\n]*')
+    if (-not $pattern.IsMatch($text)) { return $false }
+    $newline = "`n"
+    if ($text.Contains("`r`n")) { $newline = "`r`n" }
+    $replacement = '## [Non rilasciato]' + $newline + $newline + '## [' + $Version + '] - ' + $Date
+    $updated = $pattern.Replace($text, $replacement.Replace('$', '$$'), 1)
+    [System.IO.File]::WriteAllText($Path, $updated, (New-Object System.Text.UTF8Encoding($false)))
+    return $true
+}
+
 function ConvertTo-LciaGitHubWebUrl {
     <#
     .SYNOPSIS

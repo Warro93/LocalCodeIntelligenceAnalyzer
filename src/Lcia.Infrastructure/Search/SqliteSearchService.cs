@@ -21,12 +21,14 @@ public sealed class SqliteSearchService : ISearchService
 
     private readonly SqliteConnectionFactory _factory;
     private readonly IIndexStore _store;
+    private readonly ISecretScanner _secrets;
     private readonly ILogger<SqliteSearchService> _logger;
 
-    public SqliteSearchService(SqliteConnectionFactory factory, IIndexStore store, ILogger<SqliteSearchService> logger)
+    public SqliteSearchService(SqliteConnectionFactory factory, IIndexStore store, ISecretScanner secrets, ILogger<SqliteSearchService> logger)
     {
         _factory = factory;
         _store = store;
+        _secrets = secrets;
         _logger = logger;
     }
 
@@ -54,6 +56,11 @@ public sealed class SqliteSearchService : ISearchService
                     SearchMode.References => SearchReferences(connection, query, cancellationToken),
                     _ => (new List<SearchHit>(), false, "Modalità di ricerca non supportata."),
                 };
+                if (query.MaskSensitive)
+                {
+                    hits = MaskPreviews(hits, query.Redaction ?? RedactionOptions.Default);
+                }
+
                 return new SearchResult(hits, truncated, stopwatch.Elapsed, warning);
             }
             catch (SqliteException ex)
@@ -62,6 +69,31 @@ public sealed class SqliteSearchService : ISearchService
                 return new SearchResult([], false, stopwatch.Elapsed, "La ricerca non è riuscita: " + ex.Message);
             }
         }, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Oscura i valori sensibili nelle anteprime: la ricerca usa il contenuto reale, ma ciò che viene mostrato
+    /// o copiato non contiene password, token, chiavi né connection string. I file tipicamente sensibili
+    /// (secrets.json, .env, chiavi) non mostrano alcuna anteprima.
+    /// </summary>
+    private List<SearchHit> MaskPreviews(List<SearchHit> hits, RedactionOptions options)
+    {
+        var masked = new List<SearchHit>(hits.Count);
+        foreach (var hit in hits)
+        {
+            if (SensitiveFiles.IsSensitive(hit.RelativePath))
+            {
+                masked.Add(hit with { Preview = "[REDACTED:sensitive-file]" });
+                continue;
+            }
+
+            var language = LanguageCatalog.FromPath(hit.RelativePath);
+            var preview = _secrets.Redact(hit.Preview, language, options).Text;
+            var detail = hit.Detail is null ? null : _secrets.Redact(hit.Detail, language, options).Text;
+            masked.Add(hit with { Preview = preview, Detail = detail });
+        }
+
+        return masked;
     }
 
     // ------------------------------------------------------------------ parole chiave (FTS5)

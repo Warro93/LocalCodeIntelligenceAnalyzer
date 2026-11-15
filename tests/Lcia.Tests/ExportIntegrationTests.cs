@@ -56,7 +56,9 @@ public sealed class ExportIntegrationTests : IClassFixture<DemoShopFixture>
         var text = File.ReadAllText(result.Parts[0].FilePath);
 
         Assert.DoesNotContain(FakePassword, text);
-        Assert.Contains("[REDACTED:connection-string-password]", text);
+        Assert.Contains("[REDACTED:connection-string]", text);
+        Assert.DoesNotContain("demo_app", text);
+        Assert.Contains("REDACTION SCOPE", text);
         Assert.Contains(result.Redactions, r => r.RelativePath == "appsettings.json" && r.Line == 3);
         Assert.Contains("REDACTED VALUES", text);
     }

@@ -86,6 +86,13 @@ internal abstract class ExportFormatter
         Field(sb, "SECRET REDACTION", request.RedactSecrets
             ? "ENABLED - values that look like secrets are replaced with [REDACTED:<category>]"
             : "DISABLED by explicit user choice - this document may contain credentials");
+        if (request.RedactSecrets)
+        {
+            Field(sb, "REDACTION SCOPE",
+                "passwords, tokens, API keys, private keys, certificates" +
+                (request.Redaction.FullConnectionStrings ? ", whole connection strings (server, database, user)" : ", connection string passwords") +
+                (request.Redaction.PersonalData ? ", e-mail and IP addresses" : string.Empty));
+        }
         Field(sb, "LINE NUMBERS", request.IncludeLineNumbers
             ? "each source line is prefixed with \"N | \" (added by the exporter, not part of the original source)"
             : "not added - source code is reproduced verbatim (line endings normalized to LF)");
