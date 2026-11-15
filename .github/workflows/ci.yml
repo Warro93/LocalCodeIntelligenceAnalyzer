@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build e test (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore LocalCodeIntelligenceAnalyzer.slnx
+
+      - name: Build
+        run: dotnet build LocalCodeIntelligenceAnalyzer.slnx -c Release --no-restore
+
+      - name: Test
+        run: dotnet test LocalCodeIntelligenceAnalyzer.slnx -c Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+
+      - name: Prova end-to-end della CLI
+        shell: pwsh
+        run: ./scripts/build.ps1 -SkipTests -Configuration Release
+
+      - name: Test degli script PowerShell (Pester)
+        shell: pwsh
+        run: |
+          Install-Module Pester -MinimumVersion 5.5.0 -Force -SkipPublisherCheck -Scope CurrentUser
+          Import-Module Pester -MinimumVersion 5.5.0
+          $result = Invoke-Pester -Path tests/scripts -Output Detailed -PassThru
+          if ($result.FailedCount -gt 0) { exit 1 }
+
+      - name: Pubblica i risultati dei test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults
+          if-no-files-found: ignore

@@ -1,0 +1,6 @@
+<Project>
+  <!-- Disattiva la gestione centralizzata dei pacchetti per i progetti di esempio. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

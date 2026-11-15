@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Domain Layer: entità e regole pure, nessuna dipendenza esterna. -->
+  <PropertyGroup>
+    <RootNamespace>Lcia.Domain</RootNamespace>
+  </PropertyGroup>
+</Project>

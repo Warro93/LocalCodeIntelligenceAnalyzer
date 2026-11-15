@@ -1,0 +1,51 @@
+name: Release Windows x64
+
+# Crea lo zip self-contained quando viene pubblicato un tag v* (es. v0.2.0).
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build e test
+        shell: pwsh
+        run: ./scripts/build.ps1 -Configuration Release
+
+      - name: Publish win-x64 self-contained
+        shell: pwsh
+        run: ./scripts/publish-win-x64.ps1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LocalCodeIntelligenceAnalyzer-win-x64
+          path: artifacts/*.zip
+
+      - name: Note di rilascio da CHANGELOG.md
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          Import-Module ./scripts/lib/LciaGitTools.psm1 -Force
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          $notes = Get-LciaChangelogSection -Path CHANGELOG.md -Version $version
+          if ($notes.Count -eq 0) { $notes = @("Local Code Intelligence Analyzer $version") }
+          $notes | Set-Content -LiteralPath release-notes.md -Encoding utf8
+
+      - name: Crea la release e allega lo zip
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Local Code Intelligence Analyzer ${{ github.ref_name }}
+          body_path: release-notes.md
+          files: artifacts/*.zip

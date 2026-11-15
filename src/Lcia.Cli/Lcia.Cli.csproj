@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- CLI headless: indicizzazione, ricerca ed esportazione senza interfaccia grafica (utile per CI e automazioni). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Lcia.Cli</RootNamespace>
+    <AssemblyName>lcia</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lcia.Hosting\Lcia.Hosting.csproj" />
+  </ItemGroup>
+</Project>

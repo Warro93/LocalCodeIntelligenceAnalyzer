@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Code Analysis Engine per C# basato su Roslyn (sintassi in Fase 2, semantica dalla Fase 3). -->
+  <PropertyGroup>
+    <RootNamespace>Lcia.Analysis.CSharp</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lcia.Application\Lcia.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lcia.Tests" />
+  </ItemGroup>
+</Project>

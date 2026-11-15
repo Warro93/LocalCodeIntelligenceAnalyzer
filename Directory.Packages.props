@@ -1,0 +1,31 @@
+<Project>
+  <!--
+    Central Package Management: tutte le versioni NuGet sono definite qui.
+    Licenze verificate (vedi docs/THIRD_PARTY_LICENSES.md). Solo componenti gratuiti
+    con licenze compatibili con l'uso commerciale.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup Label="Runtime">
+    <!-- MIT - Roslyn: analisi sintattica C# (Fase 2), semantica dalla Fase 3 -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <!-- MIT - provider ADO.NET per SQLite (include SQLitePCLRaw e_sqlite3 con FTS5, Apache-2.0) -->
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.11" />
+    <!-- MIT -->
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <!-- MIT - MVVM con source generator -->
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <!-- MIT - editor di testo WPF con numeri di riga ed evidenziazione -->
+    <PackageVersion Include="AvalonEdit" Version="6.3.0.90" />
+  </ItemGroup>
+  <ItemGroup Label="Test">
+    <!-- MIT -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
+    <!-- Apache-2.0 -->
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+  </ItemGroup>
+</Project>

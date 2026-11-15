@@ -1,0 +1,125 @@
+<UserControl x:Class="Lcia.App.Views.ExportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="0,0,8,16" MaxWidth="1100" HorizontalAlignment="Left">
+            <TextBlock Text="Export Center — Full Project Context Export" Style="{StaticResource PageTitle}" />
+            <TextBlock Style="{StaticResource PageSubtitle}"
+                       Text="Genera un dossier autonomo con struttura, progetti, simboli, riferimenti e il codice sorgente integrale dei file inclusi, utilizzabile con qualsiasi AI. I file originali non vengono mai modificati e la destinazione deve essere esterna al repository." />
+
+            <Border Style="{StaticResource Card}">
+            <StackPanel>
+            <TextBlock Text="1. Cosa esportare" Style="{StaticResource CardTitle}" />
+            <WrapPanel>
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="Modalità" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                    <ComboBox Width="430" ItemsSource="{Binding Scopes}" SelectedItem="{Binding SelectedScope}" DisplayMemberPath="Label" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="Formato" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                    <ComboBox Width="180" ItemsSource="{Binding Formats}" SelectedItem="{Binding SelectedFormat}" DisplayMemberPath="Label" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,8" VerticalAlignment="Bottom" Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">
+                        <Run Text="File nella selezione personalizzata:" />
+                        <Run Text="{Binding Selection.Count, Mode=OneWay}" FontWeight="SemiBold" />
+                    </TextBlock>
+                    <Button Content="Svuota" Command="{Binding ClearSelectionCommand}" Padding="8,3" />
+                </StackPanel>
+            </WrapPanel>
+
+            <WrapPanel>
+                <CheckBox Content="Albero delle cartelle" IsChecked="{Binding IncludeDirectoryTree}" Margin="0,0,16,6" />
+                <CheckBox Content="Elenco file" IsChecked="{Binding IncludeFileList}" Margin="0,0,16,6" />
+                <CheckBox Content="Soluzioni, progetti e pacchetti" IsChecked="{Binding IncludeProjects}" Margin="0,0,16,6" />
+                <CheckBox Content="Indice dei simboli e riferimenti" IsChecked="{Binding IncludeSymbolIndex}" Margin="0,0,16,6" />
+                <CheckBox Content="Codice sorgente integrale" IsChecked="{Binding IncludeSourceCode}" Margin="0,0,16,6" />
+                <CheckBox Content="Numeri di riga nel codice" IsChecked="{Binding IncludeLineNumbers}" Margin="0,0,16,6" />
+                <CheckBox Content="Percorso assoluto della radice" IsChecked="{Binding IncludeAbsolutePaths}" Margin="0,0,16,6"
+                          ToolTip="Disattivato per privacy: il percorso può contenere il nome utente di Windows" />
+            </WrapPanel>
+            </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+            <StackPanel>
+            <TextBlock Text="2. Filtri (separati da virgola o uno per riga)" Style="{StaticResource CardTitle}" />
+            <WrapPanel>
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="Estensioni incluse (vuoto = tutte)" Style="{StaticResource Muted}" />
+                    <TextBox Width="250" Height="60" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                             Text="{Binding ExtensionsText, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="Cartelle incluse (vuoto = tutte)" Style="{StaticResource Muted}" />
+                    <TextBox Width="300" Height="60" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                             Text="{Binding FoldersText, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="Cartelle escluse" Style="{StaticResource Muted}" />
+                    <TextBox Width="300" Height="60" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                             Text="{Binding ExcludedFoldersText, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </WrapPanel>
+            </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+            <StackPanel>
+            <TextBlock Text="3. Sicurezza" Style="{StaticResource CardTitle}" />
+            <CheckBox Content="Oscura password, token, chiavi private, certificati e connection string (consigliato)"
+                      IsChecked="{Binding RedactSecrets}" Margin="0,0,0,6" />
+            <CheckBox Content="Includi file sensibili (secrets.json, .env, chiavi) — richiede conferma"
+                      IsChecked="{Binding IncludeSensitiveFiles}" Margin="0,0,0,6" />
+            <TextBlock Style="{StaticResource Muted}" FontSize="12"
+                       Text="Il riconoscimento dei segreti è euristico: rileggi sempre il dossier prima di condividerlo." />
+            </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+            <StackPanel>
+            <TextBlock Text="4. Suddivisione e destinazione" Style="{StaticResource CardTitle}" />
+            <WrapPanel>
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="Dimensione delle parti" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                    <ComboBox Width="260" ItemsSource="{Binding PartSizes}" SelectedItem="{Binding SelectedPartSize}" DisplayMemberPath="Label" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="Nome base dei file (facoltativo)" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                    <TextBox Width="260" Text="{Binding BaseFileName, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </WrapPanel>
+            <TextBlock Text="Cartella di destinazione (esterna al repository)" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+            <DockPanel Margin="0,0,0,4">
+                <Button DockPanel.Dock="Right" Content="Sfoglia…" Command="{Binding BrowseOutputCommand}" Margin="8,0,0,0" Padding="10,3" />
+                <TextBox Text="{Binding OutputDirectory, UpdateSourceTrigger=PropertyChanged}" ToolTip="Cartella di destinazione (deve essere esterna al repository)" />
+            </DockPanel>
+            </StackPanel>
+            </Border>
+
+            <WrapPanel Margin="0,4,0,8">
+                <Button Content="Stima" Command="{Binding EstimateCommand}" Margin="0,0,8,0" Padding="18,5" />
+                <Button Content="Esporta" Command="{Binding ExportCommand}" FontWeight="SemiBold" Margin="0,0,8,0" Padding="18,5" />
+                <Button Content="Annulla" Command="{Binding ExportCancelCommand}" Margin="0,0,8,0" Padding="12,5" />
+                <Button Content="Apri cartella di destinazione" Command="{Binding OpenOutputFolderCommand}" Padding="12,5" />
+            </WrapPanel>
+            <ProgressBar Height="6" Minimum="0" Maximum="100" Value="{Binding ProgressValue, Mode=OneWay}" Margin="0,0,12,8" />
+
+            <TextBlock Text="Stima" Style="{StaticResource SectionTitle}" />
+            <TextBox Text="{Binding PlanText, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" MinHeight="50"
+                     FontFamily="{StaticResource CodeFont}" FontSize="12" />
+
+            <TextBlock Text="Risultato" Style="{StaticResource SectionTitle}" />
+            <TextBox Text="{Binding ResultText, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" MinHeight="50"
+                     FontFamily="{StaticResource CodeFont}" FontSize="12" />
+            <ItemsControl ItemsSource="{Binding WrittenFiles}" Margin="0,6,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBox Text="{Binding Mode=OneWay}" Style="{StaticResource ReadOnlyText}"
+                                 FontFamily="{StaticResource CodeFont}" FontSize="12" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

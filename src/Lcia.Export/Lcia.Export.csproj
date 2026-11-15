@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Export Engine: FULL PROJECT CONTEXT EXPORT in TXT e Markdown, con suddivisione in parti e oscuramento segreti. -->
+  <PropertyGroup>
+    <RootNamespace>Lcia.Export</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lcia.Application\Lcia.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lcia.Tests" />
+  </ItemGroup>
+</Project>

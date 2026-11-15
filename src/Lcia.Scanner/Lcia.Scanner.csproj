@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Repository Scanner: individuazione file, esclusioni, protezione link, soluzioni e progetti. -->
+  <PropertyGroup>
+    <RootNamespace>Lcia.Scanner</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lcia.Application\Lcia.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lcia.Tests" />
+  </ItemGroup>
+</Project>

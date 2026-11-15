@@ -1,0 +1,124 @@
+<UserControl x:Class="Lcia.App.Views.ExplorerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Lcia.App.ViewModels"
+             xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Esplora repository" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="File indicizzati, codice con numeri di riga (sola lettura) e struttura dei simboli. Clic su un simbolo per andare alla riga."
+                       Style="{StaticResource PageSubtitle}" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="320" MinWidth="200" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="*" MinWidth="300" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="300" MinWidth="180" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Albero file -->
+            <DockPanel Grid.Column="0">
+                <TextBlock DockPanel.Dock="Top" Text="Filtra file" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                <TextBox DockPanel.Dock="Top" Margin="0,0,0,6"
+                         Text="{Binding TreeFilter, UpdateSourceTrigger=PropertyChanged, Delay=250}"
+                         ToolTip="Filtra per percorso (es. Services/, .sql, Order)" />
+                <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                    <Button Content="Espandi" Command="{Binding ExpandAllCommand}" Margin="0,0,6,0" Padding="8,3" />
+                    <Button Content="Comprimi" Command="{Binding CollapseAllCommand}" Margin="0,0,6,0" Padding="8,3" />
+                    <Button Content="Aggiungi a esportazione" Command="{Binding AddSelectionToExportCommand}" Padding="8,3"
+                            ToolTip="Aggiunge il file o tutti i file della cartella selezionata alla selezione personalizzata" />
+                </WrapPanel>
+                <TextBlock DockPanel.Dock="Bottom" Text="{Binding StatusText}" Style="{StaticResource Muted}" Margin="0,6,0,0" />
+                <TreeView x:Name="FileTree" ItemsSource="{Binding RootNodes}" SelectedItemChanged="OnTreeSelectedItemChanged"
+                          VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Type TreeViewItem}}">
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate DataType="{x:Type vm:FileTreeNode}" ItemsSource="{Binding Children}">
+                            <StackPanel Orientation="Horizontal" ToolTip="{Binding RelativePath}">
+                                <TextBlock Text="{Binding Glyph}" FontFamily="{StaticResource IconFont}" Margin="0,0,6,0" VerticalAlignment="Center" Opacity="0.8" />
+                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding Note}" Style="{StaticResource Muted}" Margin="6,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </DockPanel>
+
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" ResizeBehavior="PreviousAndNext" />
+
+            <!-- Visualizzatore -->
+            <DockPanel Grid.Column="2" Margin="4,0">
+                <TextBlock DockPanel.Dock="Top" Text="{Binding FileInfo}" TextWrapping="Wrap" Margin="0,0,0,4" FontWeight="SemiBold" />
+                <TextBlock DockPanel.Dock="Top" Style="{StaticResource Warning}" Margin="0,0,0,4"
+                           Text="Il file è cambiato dopo l'ultima indicizzazione: aggiorna l'indice per allineare simboli e ricerca."
+                           Visibility="{Binding IsModifiedSinceIndex, Converter={StaticResource BoolToVisibility}}" />
+                <WrapPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+                    <Button Content="Mostra in Esplora file" Command="{Binding RevealInExplorerCommand}" Margin="0,0,6,0" Padding="8,3" />
+                    <Button Content="Copia percorso relativo" Command="{Binding CopyPathCommand}" Padding="8,3" />
+                </WrapPanel>
+                <Border BorderThickness="1" CornerRadius="6" BorderBrush="{DynamicResource Lcia.CardBorder}"
+                        Background="{DynamicResource Lcia.CodeBackground}" Padding="1">
+                    <Grid>
+                        <avalonEdit:TextEditor x:Name="Editor" IsReadOnly="True" ShowLineNumbers="True"
+                                               FontFamily="{StaticResource CodeFont}" FontSize="13"
+                                               Background="{DynamicResource Lcia.CodeBackground}"
+                                               Foreground="{DynamicResource Lcia.CodeForeground}"
+                                               LineNumbersForeground="{DynamicResource Lcia.CodeLineNumbers}"
+                                               HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+                        <!-- Segnaposto finché non è aperto un file -->
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                                    Visibility="{Binding CurrentFilePath, Converter={StaticResource TextToVisibility}, ConverterParameter=Invert}">
+                            <TextBlock Text="&#xE8A5;" Style="{StaticResource IconText}" FontSize="34" HorizontalAlignment="Center"
+                                       Foreground="{DynamicResource Lcia.TextMuted}" />
+                            <TextBlock Text="Seleziona un file nell'albero a sinistra" Style="{StaticResource Muted}" FontSize="14"
+                                       HorizontalAlignment="Center" Margin="0,8,0,0" />
+                            <TextBlock Text="oppure apri un risultato da Cerca (doppio clic)" Style="{StaticResource Muted}" FontSize="12"
+                                       HorizontalAlignment="Center" Margin="0,2,0,0" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </DockPanel>
+
+            <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" ResizeBehavior="PreviousAndNext" />
+
+            <!-- Simboli -->
+            <DockPanel Grid.Column="4">
+                <TextBlock DockPanel.Dock="Top" Text="Simboli del file" Style="{StaticResource SectionTitle}" Margin="0,0,0,6" />
+                <ListBox ItemsSource="{Binding Symbols}" SelectedItem="{Binding SelectedSymbol}"
+                         VirtualizingPanel.IsVirtualizing="True" HorizontalContentAlignment="Stretch">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,2">
+                                <StackPanel.ToolTip>
+                                    <StackPanel MaxWidth="520">
+                                        <TextBlock Text="{Binding Signature}" FontFamily="{StaticResource CodeFont}" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Documentation}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                </StackPanel.ToolTip>
+                                <TextBlock Text="{Binding Display}" FontFamily="{StaticResource CodeFont}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Style="{StaticResource Muted}" FontSize="11">
+                                    <Run Text="{Binding Kind, Mode=OneWay}" />
+                                    <Run Text="· righe" />
+                                    <Run Text="{Binding Lines, Mode=OneWay}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Grid>
+    </Grid>
+</UserControl>

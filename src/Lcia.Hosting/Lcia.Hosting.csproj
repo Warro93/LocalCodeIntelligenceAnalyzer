@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Composition root condivisa da applicazione desktop, CLI e test (dependency injection). -->
+  <PropertyGroup>
+    <RootNamespace>Lcia.Hosting</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lcia.Infrastructure\Lcia.Infrastructure.csproj" />
+    <ProjectReference Include="..\Lcia.Scanner\Lcia.Scanner.csproj" />
+    <ProjectReference Include="..\Lcia.Analysis.CSharp\Lcia.Analysis.CSharp.csproj" />
+    <ProjectReference Include="..\Lcia.Export\Lcia.Export.csproj" />
+  </ItemGroup>
+</Project>

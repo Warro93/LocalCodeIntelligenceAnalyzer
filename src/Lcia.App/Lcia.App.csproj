@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Presentation Layer: applicazione desktop WPF (MVVM) per Windows 11 x64. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>LocalCodeIntelligenceAnalyzer</AssemblyName>
+    <RootNamespace>Lcia.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\lcia.ico</ApplicationIcon>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <!-- Permette restore/build della solution anche da ambienti non Windows (CI multipiattaforma). -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <!-- WPF0001: API ThemeMode (tema Fluent chiaro/scuro) marcata come sperimentale in WPF per .NET 9/10. -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="AvalonEdit" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lcia.Hosting\Lcia.Hosting.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\lcia.ico" />
+    <Resource Include="Assets\lcia.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- La guida in linea (pagina Guida) mostra docs/USER_GUIDE.md: una sola fonte per manuale e documentazione. -->
+    <EmbeddedResource Include="..\..\docs\USER_GUIDE.md" Link="Help\USER_GUIDE.md" LogicalName="Lcia.App.Help.USER_GUIDE.md" />
+  </ItemGroup>
+</Project>

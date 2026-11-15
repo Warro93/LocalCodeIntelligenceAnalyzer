@@ -1,0 +1,27 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <!-- Palette chiara dell'interfaccia. Le chiavi sono le stesse nelle due palette:
+         gli elementi le usano con DynamicResource e cambiano colore senza riavvio (ThemeService). -->
+    <sys:String x:Key="Lcia.PaletteName">Light</sys:String>
+
+    <SolidColorBrush x:Key="Lcia.Text" Color="#1B1B1B" />
+    <SolidColorBrush x:Key="Lcia.TextMuted" Color="#5F5F5F" />
+    <SolidColorBrush x:Key="Lcia.Accent" Color="#005FB8" />
+    <SolidColorBrush x:Key="Lcia.AccentSubtle" Color="#1A005FB8" />
+    <SolidColorBrush x:Key="Lcia.Surface" Color="#0A000000" />
+    <SolidColorBrush x:Key="Lcia.Card" Color="#D9FFFFFF" />
+    <SolidColorBrush x:Key="Lcia.CardBorder" Color="#1F000000" />
+    <SolidColorBrush x:Key="Lcia.Divider" Color="#17000000" />
+    <SolidColorBrush x:Key="Lcia.Warning" Color="#9D5D00" />
+    <SolidColorBrush x:Key="Lcia.WarningBackground" Color="#FFF4CE" />
+    <SolidColorBrush x:Key="Lcia.Error" Color="#C42B1C" />
+    <SolidColorBrush x:Key="Lcia.ErrorBackground" Color="#FDE7E9" />
+    <SolidColorBrush x:Key="Lcia.Success" Color="#0F7B0F" />
+    <SolidColorBrush x:Key="Lcia.InfoBackground" Color="#EAF2FB" />
+    <SolidColorBrush x:Key="Lcia.CodeBackground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Lcia.CodeForeground" Color="#1E1E1E" />
+    <SolidColorBrush x:Key="Lcia.CodeLineNumbers" Color="#8A8A8A" />
+    <SolidColorBrush x:Key="Lcia.InlineCodeBackground" Color="#12000000" />
+    <SolidColorBrush x:Key="Lcia.SearchHighlight" Color="#66FFD54F" />
+</ResourceDictionary>

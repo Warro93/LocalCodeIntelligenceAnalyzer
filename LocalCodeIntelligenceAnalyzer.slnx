@@ -1,0 +1,25 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Lcia.Domain/Lcia.Domain.csproj" />
+    <Project Path="src/Lcia.Application/Lcia.Application.csproj" />
+    <Project Path="src/Lcia.Infrastructure/Lcia.Infrastructure.csproj" />
+    <Project Path="src/Lcia.Scanner/Lcia.Scanner.csproj" />
+    <Project Path="src/Lcia.Analysis.CSharp/Lcia.Analysis.CSharp.csproj" />
+    <Project Path="src/Lcia.Export/Lcia.Export.csproj" />
+    <Project Path="src/Lcia.Hosting/Lcia.Hosting.csproj" />
+    <Project Path="src/Lcia.Cli/Lcia.Cli.csproj" />
+    <Project Path="src/Lcia.App/Lcia.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Lcia.Tests/Lcia.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path=".editorconfig" />
+    <File Path="README.md" />
+    <File Path="CHANGELOG.md" />
+    <File Path="ROADMAP.md" />
+  </Folder>
+</Solution>

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Infrastructure Layer: indice SQLite + FTS5 (Search Engine), lettura file, metadati Git
+    in sola lettura, impostazioni, logging su file con oscuramento dei segreti.
+  -->
+  <PropertyGroup>
+    <RootNamespace>Lcia.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lcia.Application\Lcia.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lcia.Tests" />
+  </ItemGroup>
+</Project>
