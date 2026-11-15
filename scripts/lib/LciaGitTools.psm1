@@ -468,6 +468,94 @@ function Initialize-LciaGitIdentity {
     return $true
 }
 
+# --------------------------------------------------------------------- branch (Git Flow)
+
+function Get-LciaBranchKind {
+    <#
+    .SYNOPSIS
+    Tipo di branch secondo Git Flow: main, develop, feature, release, hotfix oppure other.
+    #>
+    param([AllowEmptyString()][string]$Name)
+    switch -Regex ($Name) {
+        '^(main|master)$' { return 'main' }
+        '^develop$' { return 'develop' }
+        '^feature/.+' { return 'feature' }
+        '^release/.+' { return 'release' }
+        '^hotfix/.+' { return 'hotfix' }
+        default { return 'other' }
+    }
+}
+
+function ConvertTo-LciaBranchSlug {
+    <#
+    .SYNOPSIS
+    Converte un testo libero in un nome di branch valido: minuscole, senza accenti, parole separate da "-".
+    #>
+    param([AllowEmptyString()][string]$Text)
+    $decomposed = ([string]$Text).Trim().ToLowerInvariant().Normalize([System.Text.NormalizationForm]::FormD)
+    $builder = New-Object System.Text.StringBuilder
+    foreach ($ch in $decomposed.ToCharArray()) {
+        if ([System.Globalization.CharUnicodeInfo]::GetUnicodeCategory($ch) -ne [System.Globalization.UnicodeCategory]::NonSpacingMark) {
+            [void]$builder.Append($ch)
+        }
+    }
+    $slug = [regex]::Replace($builder.ToString(), '[^a-z0-9._-]+', '-')
+    $slug = [regex]::Replace($slug, '-{2,}', '-').Trim('-', '.')
+    if ($slug.Length -gt 60) { $slug = $slug.Substring(0, 60).Trim('-', '.') }
+    return $slug
+}
+
+function Test-LciaSemVer {
+    param([AllowEmptyString()][string]$Version)
+    return ([string]$Version) -match '^\d+\.\d+\.\d+$'
+}
+
+function Get-LciaNextVersion {
+    <#
+    .SYNOPSIS
+    Versione successiva: major (X+1.0.0), minor (X.Y+1.0) o patch (X.Y.Z+1). Eventuale suffisso ignorato.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Version,
+        [Parameter(Mandatory)][ValidateSet('major', 'minor', 'patch')][string]$Part
+    )
+    $core = ($Version.Trim().TrimStart('v', 'V') -split '[-+]')[0]
+    $numbers = @(0, 0, 0)
+    $parts = @($core -split '\.')
+    for ($i = 0; $i -lt 3 -and $i -lt $parts.Count; $i++) {
+        $value = 0
+        if ([int]::TryParse($parts[$i], [ref]$value)) { $numbers[$i] = $value }
+    }
+    switch ($Part) {
+        'major' { return '{0}.0.0' -f ($numbers[0] + 1) }
+        'minor' { return '{0}.{1}.0' -f $numbers[0], ($numbers[1] + 1) }
+        default { return '{0}.{1}.{2}' -f $numbers[0], $numbers[1], ($numbers[2] + 1) }
+    }
+}
+
+function Set-LciaProjectVersion {
+    <#
+    .SYNOPSIS
+    Imposta la versione in Directory.Build.props (primo elemento Version) mantenendo codifica e fine riga.
+    Restituisce $true se il file è cambiato.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Root,
+        [Parameter(Mandatory)][string]$Version
+    )
+    if (-not (Test-LciaSemVer $Version)) { throw "Versione non valida: $Version (formato X.Y.Z)" }
+    $file = Join-Path $Root 'Directory.Build.props'
+    $bytes = [System.IO.File]::ReadAllBytes($file)
+    $hasBom = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
+    $text = [System.IO.File]::ReadAllText($file)
+    $pattern = New-Object System.Text.RegularExpressions.Regex('<Version>[^<]*</Version>')
+    if (-not $pattern.IsMatch($text)) { throw 'Directory.Build.props non contiene l''elemento <Version>.' }
+    $updated = $pattern.Replace($text, "<Version>$Version</Version>", 1)
+    if ($updated -eq $text) { return $false }
+    [System.IO.File]::WriteAllText($file, $updated, (New-Object System.Text.UTF8Encoding($hasBom)))
+    return $true
+}
+
 # --------------------------------------------------------------------- versione, changelog, URL
 
 function Get-LciaProjectVersion {

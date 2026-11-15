@@ -12,7 +12,7 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 
-    <Version>0.2.2</Version>
+    <Version>0.2.3</Version>
     <Product>Local Code Intelligence Analyzer</Product>
     <Description>Analisi locale di repository, codice C# e SQL Server con esportazione del contesto tecnico.</Description>
     <Copyright>Copyright (c) 2026 - Local Code Intelligence Analyzer contributors</Copyright>

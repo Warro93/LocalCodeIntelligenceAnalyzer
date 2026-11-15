@@ -133,7 +133,41 @@ propone direttamente questo passaggio.
 
 Con un repository privato la release è visibile solo a te e ai collaboratori.
 
-## 10. Cosa non deve finire su GitHub
+## 10. Branch con Git Flow
+
+Doppio clic su **`GitHub-4-branch-git-flow.bat`**: un menu guida tutte le operazioni, ognuna con conferma.
+
+| Branch | Ruolo | Nasce da | Finisce in |
+|---|---|---|---|
+| `main` | Solo versioni pubblicate; ogni merge diventa una release con tag `vX.Y.Z` | — | — |
+| `develop` | Sviluppo quotidiano | `main` | — (permanente) |
+| `feature/<nome>` | Una funzionalità | `develop` | `develop` |
+| `release/<X.Y.Z>` | Preparazione di una versione (versione, CHANGELOG, ultime correzioni) | `develop` | `main` + tag, poi `develop` |
+| `hotfix/<X.Y.Z>` | Correzione urgente della versione pubblicata | `main` | `main` + tag, poi `develop` |
+
+`main` e `develop` sono permanenti. `release/*` e `hotfix/*` **non** si creano in anticipo: nascono quando
+servono, con la versione nel nome, e vengono eliminati dopo la chiusura.
+
+Voci del menu:
+
+1. **Inizializza Git Flow**: crea `develop` da `main` e lo invia su GitHub (una volta sola).
+2. **Nuova feature**: chiede un nome (es. "ricerca sql" → `feature/ricerca-sql`) e crea il branch da `develop`.
+3. **Nuova release**: propone la versione successiva (es. 0.2.3 → 0.3.0), crea `release/0.3.0` da `develop` e
+   aggiorna la versione in `Directory.Build.props` con un commit firmato.
+4. **Nuovo hotfix**: come la release, ma parte da `main` e propone la patch successiva (es. 0.2.4).
+5. **Chiudi il branch corrente**: feature → merge in `develop`; release/hotfix → controlla la sezione del
+   CHANGELOG, merge in `main`, tag firmato `vX.Y.Z` (GitHub Actions pubblica la release), merge in `develop`,
+   eliminazione del branch. I merge sono `--no-ff` e firmati.
+6. **Stato dei branch**: branch locali e su GitHub.
+
+Durante il lavoro su qualsiasi branch si continua a usare `GitHub-2-invia-modifiche.bat` per commit e push.
+`Aggiorna-sorgenti-da-zip.bat` avvisa se sei su `main` e propone di passare a `develop`.
+La CI gira su `main`, `develop`, `release/**` e `hotfix/**`.
+
+Facoltativo, su GitHub: *Settings → Rules* per proteggere `main` e `develop` (es. niente eliminazione e niente
+push forzati). Sui repository privati alcune regole richiedono un piano a pagamento.
+
+## 11. Cosa non deve finire su GitHub
 
 Già escluso da `.gitignore` e controllato dagli script: `bin/`, `obj/`, `artifacts/`, database (`*.db`,
 `*.sqlite`), log, esportazioni (`*.lcia-export.*`), `.env`, `secrets.json`, chiavi e certificati (`*.pfx`, `*.pem`,

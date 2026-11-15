@@ -162,3 +162,42 @@ Describe 'Get-LciaNoReplyEmail' {
         Get-LciaNoReplyEmail -Login 'utente' -Id '12345' | Should -Be '12345+utente@users.noreply.github.com'
     }
 }
+
+Describe 'Git Flow' {
+    It 'riconosce il tipo di branch' {
+        Get-LciaBranchKind 'main' | Should -Be 'main'
+        Get-LciaBranchKind 'master' | Should -Be 'main'
+        Get-LciaBranchKind 'develop' | Should -Be 'develop'
+        Get-LciaBranchKind 'feature/ricerca-sql' | Should -Be 'feature'
+        Get-LciaBranchKind 'release/0.3.0' | Should -Be 'release'
+        Get-LciaBranchKind 'hotfix/0.2.3' | Should -Be 'hotfix'
+        Get-LciaBranchKind 'feature/' | Should -Be 'other'
+        Get-LciaBranchKind 'prova' | Should -Be 'other'
+    }
+
+    It 'crea nomi di branch validi da testo libero' {
+        ConvertTo-LciaBranchSlug 'Ricerca SQL & più filtri!' | Should -Be 'ricerca-sql-piu-filtri'
+        ConvertTo-LciaBranchSlug '  --Tema Scuro--  ' | Should -Be 'tema-scuro'
+        ConvertTo-LciaBranchSlug '***' | Should -Be ''
+    }
+
+    It 'calcola la versione successiva' {
+        Get-LciaNextVersion -Version '0.2.3' -Part 'minor' | Should -Be '0.3.0'
+        Get-LciaNextVersion -Version '0.2.3' -Part 'patch' | Should -Be '0.2.4'
+        Get-LciaNextVersion -Version 'v1.9.9-preview' -Part 'major' | Should -Be '2.0.0'
+        Test-LciaSemVer '1.2.3' | Should -BeTrue
+        Test-LciaSemVer '1.2' | Should -BeFalse
+    }
+
+    It 'aggiorna solo la versione in Directory.Build.props' {
+        $root = Join-Path $TestDrive 'props'
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        $file = Join-Path $root 'Directory.Build.props'
+        [System.IO.File]::WriteAllText($file, "<Project>`r`n  <PropertyGroup>`r`n    <Version>0.2.3</Version>`r`n  </PropertyGroup>`r`n</Project>`r`n")
+        Set-LciaProjectVersion -Root $root -Version '0.3.0' | Should -BeTrue
+        Get-LciaProjectVersion -Root $root | Should -Be '0.3.0'
+        [System.IO.File]::ReadAllText($file) | Should -Match "`r`n    <Version>0.3.0</Version>`r`n"
+        Set-LciaProjectVersion -Root $root -Version '0.3.0' | Should -BeFalse
+        { Set-LciaProjectVersion -Root $root -Version '0.3' } | Should -Throw
+    }
+}

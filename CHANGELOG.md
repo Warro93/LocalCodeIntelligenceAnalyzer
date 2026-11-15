@@ -3,6 +3,21 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/); versioni secondo
 [Semantic Versioning](https://semver.org/lang/it/).
 
+## [0.2.3] - 2026-11-15 — Branch con Git Flow
+
+### Aggiunto
+- `GitHub-4-branch-git-flow.bat` e `scripts/git-flow.ps1`: menu per inizializzare Git Flow (`develop` da `main`),
+  avviare `feature/<nome>`, `release/X.Y.Z` (da `develop`) e `hotfix/X.Y.Z` (da `main`), chiudere il branch
+  corrente con merge `--no-ff` firmati, tag firmato e release su GitHub per release/hotfix, merge di ritorno in
+  `develop` ed eliminazione del branch. Ogni passaggio chiede conferma; nessun push forzato.
+- Aggiornamento automatico della versione in `Directory.Build.props` (con commit) all'avvio di release e hotfix.
+- Test Pester per tipo di branch, nomi di branch, versioni successive e aggiornamento della versione.
+
+### Modificato
+- CI anche su `develop`, `release/**` e `hotfix/**`.
+- `Aggiorna-sorgenti-da-zip.bat` mostra il branch corrente e, se sei su `main` con Git Flow attivo, propone di
+  passare a `develop`.
+
 ## [0.2.2] - 2026-11-15 — Tema scuro, interfaccia, guida in linea
 
 ### Aggiunto

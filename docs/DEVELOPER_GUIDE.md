@@ -89,12 +89,19 @@ separate (WAL).
 - Nessun valore segreto in log, messaggi di errore o export (salvo conferma esplicita dell'utente per l'export).
 - Le esportazioni non possono essere scritte dentro il repository analizzato.
 
-## Release
+## Branch e release (Git Flow)
 
-1. Aggiorna `Version` in `Directory.Build.props`, aggiungi la sezione `## [X.Y.Z]` in `CHANGELOG.md`, aggiorna `ROADMAP.md`.
-2. `GitHub-2-invia-modifiche.bat` (commit firmato e push).
-3. `GitHub-3-crea-release.bat`: controlla che tutto sia inviato, crea il tag firmato `vX.Y.Z` e lo invia.
+Si lavora su `develop` o su `feature/<nome>`; `main` contiene solo versioni pubblicate. Tutto da
+`GitHub-4-branch-git-flow.bat` (dettagli in `docs/GITHUB_SETUP.md`, sezione 10):
+
+1. **Nuova release** → `release/X.Y.Z` da `develop`, versione aggiornata in `Directory.Build.props`.
+2. Sul branch di release: sezione `## [X.Y.Z]` in `CHANGELOG.md`, `ROADMAP.md`, ultime correzioni;
+   salva con `GitHub-2-invia-modifiche.bat`.
+3. **Chiudi il branch corrente** → merge in `main`, tag firmato `vX.Y.Z` (stesso controllo di
+   `GitHub-3-crea-release.bat`), merge in `develop`, eliminazione del branch.
 4. Il workflow `release.yml` compila, testa, crea lo zip win-x64 e la release con il testo del CHANGELOG.
+
+Correzioni urgenti: **Nuovo hotfix** (`hotfix/X.Y.Z` da `main`), poi **Chiudi il branch corrente**.
 
 Manualmente: `git tag -s v0.2.1 -m "Local Code Intelligence Analyzer 0.2.1"` e `git push origin v0.2.1`.
 

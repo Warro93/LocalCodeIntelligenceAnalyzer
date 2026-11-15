@@ -10,7 +10,9 @@
 - Mai credenziali, token, database locali, esportazioni o sorgenti di terzi nel repository.
 
 ## Flusso di lavoro
-1. Crea un branch: `git switch -c feature/nome-breve`.
+1. Crea un branch dalla voce **Nuova feature** di `GitHub-4-branch-git-flow.bat` (o `git switch -c feature/nome-breve`
+   a partire da `develop`). Modello Git Flow: `main` solo versioni pubblicate, `develop` sviluppo, `feature/*`,
+   `release/*`, `hotfix/*` temporanei.
 2. Sviluppa con test: ogni motore ha test di unità e, se tocca l'indice, test di integrazione su `samples/DemoShop`.
 3. Verifica in locale: `powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1`.
 4. Aggiorna `CHANGELOG.md` (sezione della versione in corso) e, se cambia lo stato di una fase, `ROADMAP.md`.

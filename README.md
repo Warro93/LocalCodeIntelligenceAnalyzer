@@ -8,7 +8,7 @@ progetti software (.NET, SQL Server e altri linguaggi), ricostruisce strutture e
 - Il codice analizzato non viene mai eseguito; i repository sono aperti in **sola lettura**.
 - Funziona **senza AI**: l'integrazione con Ollama (AI locale) sarà opzionale (Fase 8).
 
-> **Versione 0.2.2 — Fasi 1 e 2 (MVP) con tema scuro e guida in linea.** Lo stato verificato di ogni fase è in
+> **Versione 0.2.3 — Fasi 1 e 2 (MVP) con tema scuro, guida in linea e Git Flow.** Lo stato verificato di ogni fase è in
 > [ROADMAP.md](ROADMAP.md).
 
 ## Strumenti con doppio clic
@@ -24,6 +24,7 @@ Nella cartella principale del progetto (nessun privilegio di amministratore, nes
 | `GitHub-1-prima-pubblicazione.bat` | Git locale, creazione del repository su GitHub (privato o pubblico), primo commit firmato e push |
 | `GitHub-2-invia-modifiche.bat` | Controllo di file e segreti, commit **firmato** e push, con conferma a ogni passo |
 | `GitHub-3-crea-release.bat` | Tag firmato `vX.Y.Z` della versione corrente: GitHub Actions compila, testa e pubblica la release con lo zip win-x64 |
+| `GitHub-4-branch-git-flow.bat` | Branch secondo **Git Flow**: crea `develop`, avvia `feature/*`, `release/X.Y.Z`, `hotfix/X.Y.Z` e li chiude con merge firmati, tag e pulizia |
 
 I `.bat` eseguono gli script PowerShell in `scripts\` (leggibili e modificabili); ogni operazione su GitHub
 chiede conferma esplicita.

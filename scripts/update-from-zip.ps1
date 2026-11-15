@@ -62,6 +62,28 @@ $root = Get-LciaProjectRoot -ScriptsDirectory $PSScriptRoot
 $currentVersion = Get-LciaProjectVersion -Root $root
 Write-LciaInfo "Progetto         : $root"
 Write-LciaInfo "Versione attuale : $currentVersion"
+if ((Test-LciaGitRepository -Root $root) -and (Test-LciaCommand 'git')) {
+    Push-Location -LiteralPath $root
+    try {
+        $currentBranch = Get-LciaGitValue -Arguments @('symbolic-ref', '--short', 'HEAD')
+        $hasDevelop = (Invoke-LciaGit -Arguments @('rev-parse', '--verify', '--quiet', 'refs/heads/develop') -AllowFailure).ExitCode -eq 0
+    } finally {
+        Pop-Location
+    }
+    Write-LciaInfo "Branch           : $currentBranch"
+    if ($hasDevelop -and (Get-LciaBranchKind $currentBranch) -eq 'main') {
+        Write-LciaWarn 'Sei su main: con Git Flow gli aggiornamenti si applicano su develop (o su un branch feature/*).'
+        if ((Get-LciaPendingFiles -Root $root).Count -eq 0 -and (Read-LciaYesNo 'Passare a develop prima di aggiornare?' -DefaultYes)) {
+            Push-Location -LiteralPath $root
+            try {
+                Invoke-LciaGit -Arguments @('switch', 'develop') | Out-Null
+            } finally {
+                Pop-Location
+            }
+            Write-LciaOk 'Ora sei su develop.'
+        }
+    }
+}
 
 # ------------------------------------------------------------------ 1. scelta dello zip
 if ([string]::IsNullOrWhiteSpace($ZipPath)) {

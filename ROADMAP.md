@@ -41,6 +41,7 @@ marcare le Fasi 1–2 come ✅ → Fase 3.
       con conferma prima di ogni operazione remota; blocco di segreti e file non pubblicabili; controllo della firma dei commit.
 - [x] `.bat` con doppio clic per build, installazione/aggiornamento, disinstallazione, aggiornamento da zip,
       pubblicazione, invio modifiche e release (0.2.1).
+- [x] Branch secondo Git Flow (`develop`, `feature/*`, `release/*`, `hotfix/*`) con `GitHub-4-branch-git-flow.bat` (0.2.3).
 - [ ] `Invoke-Pester tests\scripts` verde (eseguito in CI).
 - [ ] Installazione, aggiornamento e disinstallazione provati su Windows 11.
 
