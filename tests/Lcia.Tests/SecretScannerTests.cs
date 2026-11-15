@@ -52,7 +52,7 @@ public sealed class SecretScannerTests
         Assert.Equal("var cs = \"[REDACTED:connection-string]\";", _scanner.Redact(code, SourceLanguage.CSharp).Text);
 
         var azure = "DefaultEndpointsProtocol=https;AccountName=acct;AccountKey=" + new string('A', 40) + "==;EndpointSuffix=core.windows.net";
-        Assert.Equal("[REDACTED:connection-string]", _scanner.Redact(azure, SourceLanguage.Text).Text);
+        Assert.Equal("[REDACTED:connection-string]", _scanner.Redact(azure, SourceLanguage.Unknown).Text);
 
         Assert.Equal("Errore su [REDACTED:connection-string]", _scanner.RedactLine("Errore su Server=db;Database=x;"));
     }
@@ -146,7 +146,7 @@ public sealed class SecretScannerTests
         var sendgrid = "SG." + new string('c', 22) + "." + new string('d', 43);
         var basic = "Basic " + "dXNlcjpwYXNz" + "d29yZDEyMzQ=";
         var text = $"npm {npm}\nsg {sendgrid}\nAuthorization: {basic}";
-        var result = _scanner.Redact(text, SourceLanguage.Text);
+        var result = _scanner.Redact(text, SourceLanguage.Unknown);
         Assert.DoesNotContain(npm, result.Text);
         Assert.DoesNotContain(sendgrid, result.Text);
         Assert.DoesNotContain("d29yZDEyMzQ=", result.Text);
@@ -172,10 +172,10 @@ public sealed class SecretScannerTests
     public void PersonalDataIsMaskedOnlyWhenRequested()
     {
         var text = "Referente: mario.rossi@azienda.example, server 192.168.10.20, locale 127.0.0.1";
-        Assert.Equal(text, _scanner.Redact(text, SourceLanguage.Text).Text);
+        Assert.Equal(text, _scanner.Redact(text, SourceLanguage.Unknown).Text);
 
         var options = new RedactionOptions { PersonalData = true };
-        var result = _scanner.Redact(text, SourceLanguage.Text, options);
+        var result = _scanner.Redact(text, SourceLanguage.Unknown, options);
         Assert.Equal("Referente: [REDACTED:email], server [REDACTED:ip-address], locale 127.0.0.1", result.Text);
         Assert.Contains(result.Findings, f => f.Category == "email");
         Assert.Contains(result.Findings, f => f.Category == "ip-address");
